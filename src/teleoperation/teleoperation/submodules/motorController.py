@@ -49,7 +49,7 @@ class motorController:
         if not raw_pwm:
             targetPWM = round(4 * (NEUTRAL_PWM + INVERTER * (target * multiplier)))
         else:
-            targetPWM = target
+            targetPWM = target * 4
         targetPWM = round(targetPWM)
         logging.info(f'PWM: {targetPWM / 4}')
         if (targetPWM > 1800 * 4): targetPWM = 18000* 4

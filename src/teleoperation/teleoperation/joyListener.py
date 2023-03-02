@@ -55,6 +55,9 @@ class JoyListener(Node):
         self.sangular_z = 0
         self.publish_cmd()
         self.mc = motorController()
+        self.fmc_pressed = False
+        self.light_pressed = False
+        self.light_on = False
         
 
     # def listener_callback(self, msg): # test fxn for joy_node
@@ -69,14 +72,34 @@ class JoyListener(Node):
         self.jlinear_y = msg.axes[0] * MAXVEL_Y # side to side
         self.jlinear_z = msg.axes[5] * MAXVEL_Z # depth control (need point implementation)
         self.jangular_z = msg.axes[2] * MAXVEL_AZ # yah
-        self.mc.run([9],self.convert_to_PWM(msg.axes[3]) * 4, raw_pwm=True)
+        self.mc.run([9],self.convert_to_PWM(msg.axes[3]), raw_pwm=True)
         if (not int(msg.buttons[0])):
-            self.get_logger().info("pressing 1")
-            self.mc.run([8],1200 * 4, 1, raw_pwm=True)
+            self.mc.run([8],1200, 1, raw_pwm=True)
         else:
-            self.get_logger().info("pressing 0")
-            self.mc.run([8],1800 * 4, 1, raw_pwm=True)
+            self.mc.run([8],1800, 1, raw_pwm=True)
+        
+        if(int(msg.buttons[1]) and not fmc_pressed):
+            self.fmc_pressed = True
+            self.toggle_fmc()
+        
+        if(int(msg.buttons[2]) and not light_pressed):
+            self.light_on = not self.light_on
+            self.get_logger().info("pressing btn 2")
+        self.fmc_pressed = bool(msg.buttons[1])
+        self.light_pressed = bool(msg.buttons[2])
         self.publish_cmd()
+
+    def toggle_fmc(self):
+        if (fmc_pressed):
+            """
+            TODO: Set global maxvel values to be lower/higher depending on fmc
+            """
+    
+    def send_light_pwm(self):
+        if (light_on):
+            mc.run([10],1900)
+        else:
+            mc.run([10],1100)
     
     def convert_to_PWM(self, axis):
         return 1500 + 390 * axis
