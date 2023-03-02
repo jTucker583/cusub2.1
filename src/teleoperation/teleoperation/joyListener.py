@@ -70,7 +70,7 @@ class JoyListener(Node):
         self.jlinear_z = msg.axes[5] * MAXVEL_Z # depth control (need point implementation)
         self.jangular_z = msg.axes[2] * MAXVEL_AZ # yah
         self.mc.run([9],self.convert_to_PWM(msg.axes[3]) * 4, raw_pwm=True)
-        if (int(msg.buttons[0])):
+        if (not int(msg.buttons[0])):
             self.get_logger().info("pressing 1")
             self.mc.run([8],1200 * 4, 1, raw_pwm=True)
         else:

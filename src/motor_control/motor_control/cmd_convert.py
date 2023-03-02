@@ -27,10 +27,10 @@ class cmd_convert(Node):
     def listener_callback(self, msg): # test fxn for joy_node
         if(msg.linear.x > 0): # only send a command when vel is not 0
             channels = [0,1,2,7] # dummy channel list
-            self.get_logger().info(f"Re: {self.mc.run(channels,msg.linear.x, INVERT=False) / 4}")
+            self.get_logger().info(f"Re: {self.mc.run(channels,msg.linear.x, INVERT=False, raw_pwm=False) / 4}")
         elif(msg.linear.x < 0):
             channels = [0,1,2,7] # dummy channel list
-            self.get_logger().info(f"Re: {self.mc.run(channels,msg.linear.x, INVERT=True) / 4}")
+            self.get_logger().info(f"Re: {self.mc.run(channels,msg.linear.x, INVERT=False, raw_pwm=False) / 4}")
         if(msg.linear.y > 0): # only send a command when vel is not 0
             forward_channels = [7,1] # dummy channel list
             backward_channels = [2,0] # dummy channel list
@@ -39,8 +39,8 @@ class cmd_convert(Node):
         elif(msg.linear.y < 0): # only send a command when vel is not 0
             forward_channels = [2,0] # dummy channel list
             backward_channels = [7,1] # dummy channel list
-            self.mc.run(forward_channels,msg.linear.y, INVERT=False)
-            self.mc.run(backward_channels,msg.linear.y, INVERT=True)
+            self.mc.run(forward_channels,msg.linear.y, INVERT=True)
+            self.mc.run(backward_channels,msg.linear.y, INVERT=False)
         if(msg.linear.x == 0 and msg.linear.y == 0 and msg.angular.z == 0):
             channels = [0,1,2,7]
             self.mc.killAll(channels)
@@ -53,8 +53,8 @@ class cmd_convert(Node):
         if(msg.angular.z > 0): # spin left?
             forward_channels = [7,2] # dummy channel list
             backward_channels = [0,1] # dummy channel list
-            self.mc.run(forward_channels,msg.angular.z, INVERT=False)
-            self.mc.run(backward_channels,msg.angular.z, INVERT=True)
+            self.mc.run(forward_channels,msg.angular.z, INVERT=True)
+            self.mc.run(backward_channels,msg.angular.z, INVERT=False)
         elif(msg.angular.z < 0): # spin right?
             forward_channels = [0,1] # dummy channel list
             backward_channels = [7,2] # dummy channel list
