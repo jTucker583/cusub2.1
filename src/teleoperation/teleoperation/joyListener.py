@@ -82,6 +82,7 @@ class JoyListener(Node):
         self.jlinear_z = z * self.fmc_val # depth control (need point implementation)
         self.jangular_z = az / sum_ax * MAXVEL_AZ * self.fmc_val # yaw
         
+        self.get_logger().info(f"{self.convert_to_PWM(msg.axes[3])}")
         self.mc.run([9],self.convert_to_PWM(msg.axes[3]), raw_pwm=True)
         if (not int(msg.buttons[0])):
             self.mc.run([8],1200, 1, raw_pwm=True)
@@ -95,7 +96,6 @@ class JoyListener(Node):
                 self.get_logger().info(f"Light ON")
             else:
                 self.get_logger().info(f"Light OFF")
-            self.toggle_light()
             
         self.fmc_pressed = bool(msg.buttons[1])
         self.light_pressed = bool(msg.buttons[2])
@@ -118,7 +118,7 @@ class JoyListener(Node):
             self.mc.run([10],1100)
     
     def convert_to_PWM(self, axis):
-        return 1500 + 500 * axis
+        return round(1500 + 500 * axis)
 
     def sys_cmd_vel_callback(self, msg):
         self.slinear_x = msg.linear.x

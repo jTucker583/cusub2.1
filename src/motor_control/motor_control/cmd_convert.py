@@ -84,7 +84,7 @@ class cmd_convert(Node):
         
         for motor in motors:
             self.mc.run([motor], motors[motor], raw_pwm=True)
-            self.get_logger().info(f"Motor {motor} PWM: {motors[motor]}")
+            # self.get_logger().info(f"Motor {motor} PWM: {motors[motor]}")
         self.mc.run(z_channels, z_targetPWM, raw_pwm=True)
         
         
