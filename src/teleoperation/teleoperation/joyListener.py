@@ -53,6 +53,7 @@ class JoyListener(Node):
         self.slinear_z = 0
         self.sangular_z = 0
         self.publish_cmd()
+        
 
     # def listener_callback(self, msg): # test fxn for joy_node
     #     mc = motorController()
@@ -61,6 +62,7 @@ class JoyListener(Node):
     #         mc.run(channels,msg.axes[1])
     def listener_callback(self, msg):
         # Need to adjust values
+        # implement logic to dermine max values to send
         self.jlinear_x = msg.axes[1] * MAXVEL_X # forward/backward
         self.jlinear_y = msg.axes[0] * MAXVEL_Y # side to side
         self.jlinear_z = msg.axes[5] * MAXVEL_Z # depth control (need point implementation)
