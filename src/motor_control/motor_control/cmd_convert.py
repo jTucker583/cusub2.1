@@ -22,8 +22,6 @@ class cmd_convert(Node):
             self.listener_callback,
             10)
         self.last_msg_time = self.get_clock().now()
-        self.timeout = 0.1 # 100 ms
-        self.timer = self.create_timer(self.timeout, self.check_timeout)
         self.mc = motorController()
 
     def listener_callback(self, msg): # test fxn for joy_node
@@ -55,20 +53,13 @@ class cmd_convert(Node):
         if(msg.angular.z > 0): # spin left?
             forward_channels = [7,2] # dummy channel list
             backward_channels = [0,1] # dummy channel list
-            self.mc.run(forward_channels,msg.linear.y, INVERT=False)
-            self.mc.run(backward_channels,msg.linear.y, INVERT=True)
+            self.mc.run(forward_channels,msg.angular.z, INVERT=False)
+            self.mc.run(backward_channels,msg.angular.z, INVERT=True)
         elif(msg.angular.z < 0): # spin right?
             forward_channels = [0,1] # dummy channel list
             backward_channels = [7,2] # dummy channel list
-            self.mc.run(forward_channels,msg.linear.y, INVERT=False)
-            self.mc.run(backward_channels,msg.linear.y, INVERT=True)
-    
-    def check_timeout(self):
-        duration_in_ns = (self.get_clock().now() - self.last_msg_time).nanoseconds
-        duration_in_s = duration_in_ns / 1e9
-        if duration_in_s > self.timeout:
-            channels = [0, 1, 2, 3, 4, 5, 6, 7]
-            self.mc.killAll(channels)
+            self.mc.run(forward_channels,msg.angular.z, INVERT=False)
+            self.mc.run(backward_channels,msg.angular.z, INVERT=True)
     
     def experimental_callback(self, msg):
         # convert msg to PWM here, and do proportion logic
