@@ -8,7 +8,6 @@ import time
 import sys
 from .Maestro import maestro
 import yaml
-import rclpy
 import logging
 
 PWM_MULTIPLIER = 0
@@ -51,8 +50,8 @@ class motorController:
         else:
             targetPWM = target
         logging.info(f'PWM: {targetPWM / 4}')
-        if (targetPWM > 1650 * 4): targetPWM = 1650* 4
-        elif (targetPWM < 1350 * 4): targetPWM = 1350 * 4
+        # if (targetPWM > 1650 * 4): targetPWM = 1650* 4
+        # elif (targetPWM < 1350 * 4): targetPWM = 1350 * 4
         targetBytes = [(targetPWM & 0x7F), ((targetPWM >> 7) & 0x7F)]
         for channel in channels: # loop through channels
             finalCommand = [0x84, channel] + targetBytes # Send 4 byte command to maestro

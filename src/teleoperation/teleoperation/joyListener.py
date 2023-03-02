@@ -82,12 +82,14 @@ class JoyListener(Node):
             self.fmc_pressed = True
             self.toggle_fmc()
         
-        if(int(msg.buttons[2]) and not light_pressed):
+        if(int(msg.buttons[2]) and not self.light_pressed):
             self.light_on = not self.light_on
             self.get_logger().info("pressing btn 2")
+            self.get_logger().info(f"Light on: {self.light_on}")
         self.fmc_pressed = bool(msg.buttons[1])
         self.light_pressed = bool(msg.buttons[2])
         self.publish_cmd()
+        self.send_light_pwm()
 
     def toggle_fmc(self):
         if (fmc_pressed):
@@ -96,13 +98,14 @@ class JoyListener(Node):
             """
     
     def send_light_pwm(self):
-        if (light_on):
-            mc.run([10],1900)
+        if (self.light_on):
+
+            self.mc.run([10],1900)
         else:
-            mc.run([10],1100)
+            self.mc.run([10],1100)
     
     def convert_to_PWM(self, axis):
-        return 1500 + 390 * axis
+        return 1500 + 500 * axis
 
     def sys_cmd_vel_callback(self, msg):
         self.slinear_x = msg.linear.x
