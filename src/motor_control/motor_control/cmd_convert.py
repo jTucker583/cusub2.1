@@ -73,9 +73,9 @@ class cmd_convert(Node):
         x_targetPWM = self.convert_to_PWM(xmsg)
         y_targetPWM = self.convert_to_PWM(ymsg)
         y_inv_targetPWM = self.convert_to_PWM(ymsg, invert=True)
-        z_targetPWM = self.convert_to_PWM(zmsg)
-        az_targetPWM = self.convert_to_PWM(azmsg)
-        az_inv_targetPWM = self.convert_to_PWM(azmsg, invert=True)
+        z_targetPWM = self.convert_to_PWM(zmsg, invert=True)
+        az_targetPWM = self.convert_to_PWM(azmsg, invert=True)
+        az_inv_targetPWM = self.convert_to_PWM(azmsg)
         
         motors = {0 : self.calculate_motor_PWM(np.array([x_targetPWM, y_inv_targetPWM, az_inv_targetPWM])),
                   1 : self.calculate_motor_PWM(np.array([x_targetPWM, y_targetPWM, az_inv_targetPWM])),

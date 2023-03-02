@@ -80,7 +80,7 @@ class JoyListener(Node):
         self.jlinear_x = x / sum_ax * MAXVEL_X * self.fmc_val # forward/backward
         self.jlinear_y = y / sum_ax * MAXVEL_Y * self.fmc_val # side to side
         self.jlinear_z = z * self.fmc_val # depth control (need point implementation)
-        self.jangular_z = az / sum_ax * MAXVEL_AZ * self.fmc_val # yaw
+        self.jangular_z = az / sum_ax * MAXVEL_AZ # yaw
         
         self.get_logger().info(f"{self.convert_to_PWM(msg.axes[3])}")
         self.mc.run([9],self.convert_to_PWM(msg.axes[3]), raw_pwm=True)
@@ -106,7 +106,7 @@ class JoyListener(Node):
     def toggle_fmc(self):
         if (self.fmc_val == 1):
             self.get_logger().info(f"Fine Motor Control ON")
-            self.fmc_val = 0.5
+            self.fmc_val = 0.66
         else:
             self.get_logger().info(f"Fine Motor Control OFF")
             self.fmc_val = 1
