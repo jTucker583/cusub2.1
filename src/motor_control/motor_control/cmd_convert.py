@@ -6,7 +6,7 @@ from geometry_msgs.msg import Pose
 from std_msgs.msg import Bool
 from sensor_msgs.msg import Joy
 from std_msgs.msg import String
-import testMC # importing this clears the motors for use
+# import testMC # importing this clears the motors for use
 """
 AUTHOR: JAKE TUCKER
 EMAIL: jakob.tucker@colorado.edu
@@ -30,6 +30,7 @@ class cmd_convert(Node):
         
         if(msg.linear.x > 0): # only send a command when vel is not 0
             channels = [0,1,2,7] # dummy channel list
+            channels = [0,1,2,3,4,5,6,7]
             self.mc.run(channels,msg.linear.x, INVERT=False)
         elif(msg.linear.x < 0):
             channels = [0,1,2,7] # dummy channel list
@@ -65,7 +66,9 @@ class cmd_convert(Node):
             self.mc.run(backward_channels,msg.linear.y, INVERT=True)
     
     def check_timeout(self):
-        if (self.get_clock().now() - self.last_msg_time).seconds > self.timeout:
+        duration_in_ns = (self.get_clock().now() - self.last_msg_time).nanoseconds
+        duration_in_s = duration_in_ns / 1e9
+        if duration_in_s > self.timeout:
             channels = [0, 1, 2, 3, 4, 5, 6, 7]
             self.mc.killAll(channels)
     
