@@ -22,19 +22,17 @@ class cmd_convert(Node):
             self.listener_callback,
             10)
         self.last_msg_time = self.get_clock().now()
-        self.timeout = 0.01 # 10 ms
+        self.timeout = 0.1 # 100 ms
         self.timer = self.create_timer(self.timeout, self.check_timeout)
         self.mc = motorController()
 
     def listener_callback(self, msg): # test fxn for joy_node
-        
         if(msg.linear.x > 0): # only send a command when vel is not 0
             channels = [0,1,2,7] # dummy channel list
-            channels = [0,1,2,3,4,5,6,7]
-            self.mc.run(channels,msg.linear.x, INVERT=False)
+            self.get_logger().info(f"Re: {self.mc.run(channels,msg.linear.x, INVERT=False) / 4}")
         elif(msg.linear.x < 0):
             channels = [0,1,2,7] # dummy channel list
-            self.mc.run(channels,msg.linear.x, INVERT=True)
+            self.get_logger().info(f"Re: {self.mc.run(channels,msg.linear.x, INVERT=True) / 4}")
         if(msg.linear.y > 0): # only send a command when vel is not 0
             forward_channels = [7,1] # dummy channel list
             backward_channels = [2,0] # dummy channel list
@@ -50,7 +48,7 @@ class cmd_convert(Node):
             self.mc.killAll(channels)
         if(msg.linear.z != 0): # only send a command when vel is not 0
             channels = [3,4,5,6] # dummy channel list
-            self.mc.run(channels,msg.linear.z, INVERT=False)
+            self.mc.run(channels,msg.linear.z, INVERT=True)
         else:
             channels = [3,4,5,6]
             self.mc.killAll(channels)
