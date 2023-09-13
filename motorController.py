@@ -1,0 +1,30 @@
+import serial
+import time
+import sys
+
+
+class motorController:
+    
+    def __init__(self):
+        # initialize serial port , set baud rate, set timeout
+        self.serial = serial.Serial('/dev/ttyACM0', 9600, timeout=1) 
+
+    def run(self, channels, target, duration=-1):
+        targetPWM = 4 * target # Multiply by 4 for Maestro
+        targetBytes = [(target & 0x7F), ((target >> 7) & 0x7F)]
+        for channel in channels: # loop through channels
+            finalCommand = [0x84, channel] + targetBytes # Send 3 byte command to maestro
+            self.serial.write(bytearray(finalCommand))
+        if duration != -1: # if duration paramter is passed
+            time.sleep(duration)
+            self.killAll(channels)
+
+    def killAll(self, channels):
+        target = 4*1490 # neutral target
+        targetBytes = [(target & 0x7F), ((target >> 7) & 0x7F)]
+        for channel in channels: # kill all channels
+            finalCommand = [0x84, channel] + targetBytes
+            self.serial.write(bytearray(finalCommand))
+
+
+ 
