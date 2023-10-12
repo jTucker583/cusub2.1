@@ -15,7 +15,7 @@ class motorController:
         for channel in channels: # loop through channels
             finalCommand = [0x84, channel] + targetBytes # Send 3 byte command to maestro
             self.serial.write(bytearray(finalCommand))
-        if duration != -1: # if duration paramter is passed
+        if duration != -1: # if duration parameter is passed
             time.sleep(duration)
             self.killAll(channels)
 
