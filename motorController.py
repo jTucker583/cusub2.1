@@ -1,13 +1,14 @@
 import serial
 import time
 import sys
-
+from Maestro import maestro
 
 class motorController:
     
     def __init__(self):
         # initialize serial port , set baud rate, set timeout
         self.serial = serial.Serial('/dev/ttyACM0', 9600, timeout=1) 
+        
 
     def run(self, channels, target, duration=-1):
         targetPWM = 4 * target # Multiply by 4 for Maestro
