@@ -27,5 +27,9 @@ class motorController:
             finalCommand = [0x84, channel] + targetBytes
             self.serial.write(bytearray(finalCommand))
 
+    def testFunc():
+        print("pinged test func")
+
+
 
  
