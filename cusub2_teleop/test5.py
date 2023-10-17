@@ -1,3 +1,8 @@
+"""
+an original attempt to spin motors
+not used currently (10/14/2023)
+"""
+
 import serial
 import time
 import sys

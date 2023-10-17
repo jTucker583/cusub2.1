@@ -1,3 +1,8 @@
+"""
+    AUTHOR: XAVIER O'KEEFE
+    CONTACT: xaok7569@colorado.edu
+    PURPOSE: Create class for basic motor control functions
+"""
 import serial
 import time
 import sys

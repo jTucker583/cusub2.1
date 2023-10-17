@@ -1,5 +1,10 @@
+"""
+    AUTHOR: XAVIER OKEEFE
+    CONTACT: xaok7569@colorado.edu
+    PURPOSE: Test code to test motor controller
+"""
 from motorController import motorController
-from Maestro import maestro
+from ~/cusub2.1/Maestro import maestro
 import time
 
 # All of this servo code is needed to clear maestro errors
