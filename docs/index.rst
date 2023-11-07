@@ -5,7 +5,7 @@
 
 Welcome to cusub2.1's documentation!
 ====================================
-Init commit
+
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
