@@ -22,8 +22,10 @@ class JoyListener(Node):
         self.subscription
 
     def listener_callback(self, msg): # test fxn for joy_node
+        mc = motorController()
         if(msg.axes[1] != 0): # trigger button
-            motorController.testFunc(msg.axes[1])
+            channels = [0,1,2,3,4,5,6,7] # dummy channel list
+            mc.run(channels,msg.axes[1])
 
 def main(args=None):
     rclpy.init(args=args)
