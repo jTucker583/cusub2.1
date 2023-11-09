@@ -9,7 +9,8 @@ Welcome to cusub2.1's documentation!
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
-      test
+      
+   test.md
 
 
 
