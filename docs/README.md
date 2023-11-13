@@ -5,4 +5,4 @@
 - Fill out .md file as usual
 - add the file name to index.rst, there should be a precendent to follow
 - push changes ask xavier or jake to build to see it on readthedocs
-- readthedocs link https://cusub21.readthedocs.io/en/latest/#
+- readthedocs link https://cusub21.readthedocs.io/en/latest/index.html
