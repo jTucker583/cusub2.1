@@ -1,6 +1,6 @@
 # Documentation for the documentation
 
-- This folder contains the setup for readthedocs
+- This folder (cusub2.1/docs) contains the setup for readthedocs
 - In order to add documentation, create a .md file titled with a description of what you're documenting
 - Fill out .md file as usual
 - add the file name to index.rst, there should be a precendent to follow
