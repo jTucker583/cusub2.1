@@ -10,6 +10,7 @@ Welcome to cusub2.1's documentation!
    :maxdepth: 2
    :caption: Contents:
       
+   README.md
    test.md
 
 
