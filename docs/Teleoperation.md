@@ -1,5 +1,5 @@
 # Teleoperation
-Updated: Nov 13, 2023 by Jake Tucker (jakob.tucker@colorado.edu)
+Updated: Nov 13, 2023
 ---
 **Current state:** We are at a point where when running a joystick node, we subscribe to that joystick node and convert the values to PWM
 values that can be sent to a singular motor. We need to:
@@ -19,3 +19,17 @@ This package has the following dependencies:
 - rclpy
 - sensor_msgs.msg
 - ROS2 [teleop_twist_joy_package](https://index.ros.org/r/teleop_twist_joy/)
+
+This package runs on three general functions:
+- Subscribe to the `/joy` node (ROS2 teleop_twist_joy package) to take data from the joystick (floating point value for each axis from -1 to 1)
+- Convert the floating point data to a PWM value (neutral position is 1490, see Maestro for more details)
+- Based on the axis sending the data, send the calculated PWM value to either the forward-back, left-right, or up-down motors
+
+Motor axis configurations:
+<<<to be implemented>>>
+
+PWM values:
+- Max forward thrust: 1900
+- Max backward thrust: 1080
+- Neutral thrust: 1490
+Note, when sending PWM values to the motors through the Pololu Mini Maestro, we need to multiply the values by four. More documentation on the Maestro can be found here.
