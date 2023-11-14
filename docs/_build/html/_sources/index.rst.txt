@@ -10,7 +10,8 @@ Welcome to cusub2.1's documentation!
    :maxdepth: 2
    :caption: Contents:
       
-   test.md
+   README.md
+   Teleoperation.md
 
 
 
