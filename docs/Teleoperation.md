@@ -33,5 +33,4 @@ PWM values:
 - Max backward thrust: 1080
 - Neutral thrust: 1490
 
-(Maestro.md)=
 Note, when sending PWM values to the motors through the Pololu Mini Maestro, we need to multiply the values by four. More documentation on the Maestro can be found [here](Maestro.md).
