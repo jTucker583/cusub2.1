@@ -26,7 +26,7 @@ This package runs on three general functions:
 - Based on the axis sending the data, send the calculated PWM value to either the forward-back, left-right, or up-down motors
 
 Motor axis configurations:
-<<<to be implemented>>>
+```/* to be implemented */```
 
 PWM values:
 - Max forward thrust: 1900
