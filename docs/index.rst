@@ -12,6 +12,7 @@ Welcome to cusub2.1's documentation!
       
    README.md
    test.md
+   Teleoperation.md
 
 
 
