@@ -32,7 +32,7 @@
           
           <a href="index.html" class="icon icon-home">
             cusub2.1
-              <img src="_static/Colorado_Robosub_Text.png" class="logo" alt="Logo"/>
+              <img src="_static/newLogoRobosub.png" class="logo" alt="Logo"/>
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
@@ -46,7 +46,7 @@
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="README.html">Documentation for the documentation</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Teleoperation</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#updated-nov-13-2023-by-jake-tucker-jakob-tucker-colorado-edu">Updated: Nov 13, 2023 by Jake Tucker (jakob.tucker&#64;colorado.edu)</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#updated-nov-13-2023">Updated: Nov 13, 2023</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#how-does-the-teleoperation-package-work">How does the teleoperation package work?</a></li>
 </ul>
 </li>
@@ -80,8 +80,8 @@
              
   <section id="teleoperation">
 <h1>Teleoperation<a class="headerlink" href="#teleoperation" title="Link to this heading"></a></h1>
-<section id="updated-nov-13-2023-by-jake-tucker-jakob-tucker-colorado-edu">
-<h2>Updated: Nov 13, 2023 by Jake Tucker (jakob.tucker&#64;colorado.edu)<a class="headerlink" href="#updated-nov-13-2023-by-jake-tucker-jakob-tucker-colorado-edu" title="Link to this heading"></a></h2>
+<section id="updated-nov-13-2023">
+<h2>Updated: Nov 13, 2023<a class="headerlink" href="#updated-nov-13-2023" title="Link to this heading"></a></h2>
 <p><strong>Current state:</strong> We are at a point where when running a joystick node, we subscribe to that joystick node and convert the values to PWM
 values that can be sent to a singular motor. We need to:</p>
 <ul class="simple">
@@ -106,6 +106,21 @@ values that can be sent to a singular motor. We need to:</p>
 <li><p>rclpy</p></li>
 <li><p>sensor_msgs.msg</p></li>
 <li><p>ROS2 <a class="reference external" href="https://index.ros.org/r/teleop_twist_joy/">teleop_twist_joy_package</a></p></li>
+</ul>
+<p>This package runs on three general functions:</p>
+<ul class="simple">
+<li><p>Subscribe to the <code class="docutils literal notranslate"><span class="pre">/joy</span></code> node (ROS2 teleop_twist_joy package) to take data from the joystick (floating point value for each axis from -1 to 1)</p></li>
+<li><p>Convert the floating point data to a PWM value (neutral position is 1490, see Maestro for more details)</p></li>
+<li><p>Based on the axis sending the data, send the calculated PWM value to either the forward-back, left-right, or up-down motors</p></li>
+</ul>
+<p>Motor axis configurations:
+<code class="docutils literal notranslate"><span class="pre">/*</span> <span class="pre">to</span> <span class="pre">be</span> <span class="pre">implemented</span> <span class="pre">*/</span></code></p>
+<p>PWM values:</p>
+<ul class="simple">
+<li><p>Max forward thrust: 1900</p></li>
+<li><p>Max backward thrust: 1080</p></li>
+<li><p>Neutral thrust: 1490
+Note, when sending PWM values to the motors through the Pololu Mini Maestro, we need to multiply the values by four. More documentation on the Maestro can be found here.</p></li>
 </ul>
 </section>
 </section>
