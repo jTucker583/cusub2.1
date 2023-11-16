@@ -12,7 +12,7 @@ Welcome to cusub2.1's documentation!
       
    README.md
    Teleoperation.md
-   Maestro.md
+   maestro.md
 
 
 Indices and tables
