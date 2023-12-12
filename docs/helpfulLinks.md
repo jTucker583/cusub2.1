@@ -8,7 +8,8 @@
 ```
 type c:\users\my_name\.ssh\id_rsa.pub | ssh root@172.110.1.171 "cat >> ~/.ssh/authorized_keys
 ```
-- 3: Confused? Check out [this link.](https://superuser.com/questions/96051/ssh-from-windows-to-linux-without-entering-a-password)
+- 3: You should now be able to ssh without using a password
+- 4: Confused? Check out [this link.](https://superuser.com/questions/96051/ssh-from-windows-to-linux-without-entering-a-password)
 
 ### Linux:
 - 1: Run this command to check if existing SSH keys are present `ls -al ~/.ssh/id_*.pub`. If keys exist, skip to step 5.
