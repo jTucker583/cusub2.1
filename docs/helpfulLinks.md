@@ -1,4 +1,4 @@
-# Helpful Links:
+# Helpful Links
 
 ## Removing password requirement for ssh 
 
