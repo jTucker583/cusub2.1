@@ -5,7 +5,9 @@
 ### Windows:
 - 1: If you have ever run `ssh-keygen`, skip this step. Otherwise, run `ssh-keygen`
 - 2: Run the following command, replacing `my_name` with your username and `laz@192.168.1.103` with whatever you are trying to ssh into
-```type c:\users\my_name\.ssh\id_rsa.pub | ssh root@172.110.1.171 "cat >> ~/.ssh/authorized_keys"```
+```
+type c:\users\my_name\.ssh\id_rsa.pub | ssh root@172.110.1.171 "cat >> ~/.ssh/authorized_keys
+```
 - 3: Confused? Check out [this link.](https://superuser.com/questions/96051/ssh-from-windows-to-linux-without-entering-a-password)
 
 ### Linux:
