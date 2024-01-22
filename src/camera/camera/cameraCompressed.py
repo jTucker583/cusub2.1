@@ -1,24 +1,23 @@
 import rclpy
 from rclpy.node import Node
-from sensor_msgs.msg import Image, CompressedImage  # Import CompressedImage
-from cv_bridge import CvBridge, CvBridgeError
+from sensor_msgs.msg import CompressedImage
+from cv_bridge import CvBridge
 import cv2
-import numpy as np
 
 class Camera(Node):
     def __init__(self, cameraport, topic):
         super().__init__('CameraPublisher')
-        self.publisher = self.create_publisher(CompressedImage, topic, 10)  # Use CompressedImage instead of Image
+        self.publisher = self.create_publisher(CompressedImage, topic, 10)
         self.bridge = CvBridge()
         self.cam_feed = cv2.VideoCapture(cameraport)
 
-    def compress_and_publish_image(self, topic='image_compressed'):
+    def compress_and_publish_image(self, topic='image'):
         ret, img = self.cam_feed.read()
         
         # Resize the image
         img_resized = cv2.resize(img, (640, 480))  # Adjust the size as needed
 
-        # Convert the OpenCV image to a ROS message
+        # Convert the OpenCV image to a ROS compressed image message
         try:
             image_msg = self.bridge.cv2_to_compressed_imgmsg(img_resized, dst_format='jpeg')  # Use JPEG compression
         except CvBridgeError as e:
@@ -30,7 +29,11 @@ class Camera(Node):
 
 def main(args=None):
     rclpy.init(args=args)
-    image = Camera(cameraport=0, topic='image_compressed')
+    image = Camera(cameraport=0, topic='image')
+    
+    # Use image_transport for publishing compressed images
+    image_transport = image.create_publisher(CompressedImage, 'image', 10)
+    
     while True:
         if image.compress_and_publish_image() == -1:
             break

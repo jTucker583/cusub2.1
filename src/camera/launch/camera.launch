@@ -1,0 +1,3 @@
+<launch>
+    <node pkg="camera" exec="CameraPublisher" name="camera" namespace="camera"/>
+</launch>
