@@ -11,6 +11,7 @@ class Camera(Node):
         self.publisher = self.create_publisher(Image, topic,10)
         self.bridge = CvBridge()
         self.cam_feed = cv2.VideoCapture(cameraport) # needs to be called every time the function is run, or else error
+        self.cam_feed.set(cv2.CAP_PROP_BUFFERSIZE, 2)
 
     def publish_image(self, topic='image'):
         ret, img = self.cam_feed.read()
