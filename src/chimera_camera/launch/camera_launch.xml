@@ -1,0 +1,3 @@
+<launch>
+  <node pkg="chimera_camera" exec="camera_node" name="camera"/>
+</launch>
