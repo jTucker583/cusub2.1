@@ -5,7 +5,7 @@
 """
 import rclpy
 from rclpy.node import Node
-from motorController import motorController # Class with motor control functions
+import motorController # Class with motor control functions
 
 from sensor_msgs.msg import Joy
 

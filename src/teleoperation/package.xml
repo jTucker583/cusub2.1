@@ -3,7 +3,7 @@
 <package format="3">
   <name>teleoperation</name>
   <version>0.0.0</version>
-  <description>TODO: Package description</description>
+  <description>Package to take joystick input and send it to the motors</description>
   <maintainer email="tuckerjake11@gmail.com">jake tucker</maintainer>
   <license>TODO: License declaration</license>
 

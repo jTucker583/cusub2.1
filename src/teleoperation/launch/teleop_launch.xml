@@ -1,0 +1,3 @@
+<launch>
+  <node pkg="teleoperation" exec="motor_control" name="motor_control"/>
+</launch>
