@@ -6,7 +6,7 @@
 import serial
 import time
 import sys
-from Maestro import maestro
+from .Maestro import maestro
 
 class motorController:
     
