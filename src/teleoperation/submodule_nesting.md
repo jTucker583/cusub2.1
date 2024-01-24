@@ -26,3 +26,5 @@ Often times we see that we need to include modules that we have created to make 
 3. Make sure that each of the folders with a submodule you use has an `__init__.py` file inside.
 
 4. Rebuild and source the package, and run like normal.
+
+More information can be found [here](https://answers.ros.org/question/367793/including-a-python-module-in-a-ros2-package/).
