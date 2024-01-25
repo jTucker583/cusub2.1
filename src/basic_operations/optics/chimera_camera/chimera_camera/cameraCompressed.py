@@ -17,7 +17,7 @@ class Camera(Node):
         self.bridge = CvBridge()
         self.cam_feed = cv2.VideoCapture(cameraport)
 
-    def compress_and_publish_image(self, topic='image'):
+    def compress_and_publish_image(self, topic='image_compressed'):
         ret, img = self.cam_feed.read()
         
         # Resize the image

@@ -13,7 +13,7 @@ class Camera(Node):
         self.cam_feed = cv2.VideoCapture(cameraport) # needs to be called every time the function is run, or else error
         self.cam_feed.set(cv2.CAP_PROP_BUFFERSIZE, 2)
 
-    def publish_image(self, topic='image'):
+    def publish_image(self, topic='image_raw'):
         ret, img = self.cam_feed.read()
         # Initialize the OpenCV bridge for converting between OpenCV images and ROS messages
         # Convert the OpenCV image to a ROS message
