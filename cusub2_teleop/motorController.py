@@ -12,7 +12,11 @@ class motorController:
     
     def __init__(self):
         # initialize serial port , set baud rate, set timeout
-        self.serial = serial.Serial('/dev/ttyACM0', 9600, timeout=1) 
+        self.serial = serial.Serial('/dev/ttyACM0', 9600, timeout=1)
+        self.motorMap = {
+            "forward":[(0,1),(1,-1),(2,-1),(3,1)], # (motor ID, Scale value) -> Scale value is + forward, - back
+            "backward":[(0,-1),(1,1),(2,1),(3,-1)]
+        } 
         
 
     def run(self, channels, target, duration=-1):
