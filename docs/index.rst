@@ -14,9 +14,10 @@ Welcome to cusub2.1's documentation!
    Intro_and_onboarding.md
    packages.md
    Teleoperation.md
-   optics/Camera.md
+   Camera.md
    maestro.md
    helpfulLinks.md
+   dvl_data.md
 
 
 Indices and tables

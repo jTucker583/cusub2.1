@@ -1,6 +1,0 @@
-# cusub2.1
-Second attempt at ROS2 conversion
-
-## cusub2_teleop
-- Code to handle teleoperation of the robot (motor controls)
-- This will be updated with code as devleopment continues
