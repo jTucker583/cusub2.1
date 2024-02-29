@@ -16,6 +16,13 @@ class motorController:
         
 
     def run(self, channels, target, duration=-1):
+        """Sends a PWM command to a set of servos
+
+        Args:
+            channels (int[]): list of integer channels from the maestro
+            target (int): target PWM value
+            duration (int, optional): duration of command. Defaults to -1 (runs once).
+        """
         targetPWM = round(4 * (1490 + 410*target)) # Multiply by 4 for Maestro
         targetPWM = targetPWM
         targetBytes = [(targetPWM & 0x7F), ((targetPWM >> 7) & 0x7F)]
@@ -27,6 +34,11 @@ class motorController:
             self.killAll(channels)
 
     def killAll(self, channels):
+        """Send the neutral PWM command to the list of servos
+
+        Args:
+            channels (int[]): list of integer channels from the maestro
+        """
         target = 4*1490 # neutral target
         targetBytes = [(target & 0x7F), ((target >> 7) & 0x7F)]
         for channel in channels: # kill all channels
@@ -34,6 +46,11 @@ class motorController:
             self.serial.write(bytearray(finalCommand))
 
     def testFunc(val):
+        """Print recieved teleop value
+
+        Args:
+            val (float): got from joystick
+        """
         finalVal = 1490 + val*410
         print("received val: ", finalVal)
 

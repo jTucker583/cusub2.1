@@ -23,6 +23,15 @@ class JoyListener(Node):
         )
         self.subscription
 
+
+########## 
+"""
+We probably need to merge this and motorController together
+Don't want a new instance of motorController to be initialized every time 
+this is run (line 36)
+"""
+
+
     def listener_callback(self, msg): # test fxn for joy_node
         mc = motorController()
         if(msg.axes[1] != 0): # trigger button

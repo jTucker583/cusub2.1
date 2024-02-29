@@ -9,9 +9,12 @@ Welcome to cusub2.1's documentation!
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
-      
+   
    README.md
+   Intro_and_onboarding.md
+   packages.md
    Teleoperation.md
+   optics/Camera.md
    maestro.md
    helpfulLinks.md
 
