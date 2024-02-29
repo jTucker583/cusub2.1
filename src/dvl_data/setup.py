@@ -4,13 +4,12 @@ from setuptools import setup
 # for setuptools, use version 58.2.0 to avoid stderr msg
 from setuptools import find_packages
 
-package_name = 'teleoperation'
-submodules = 'teleoperation/submodules'
-maestro = 'teleoperation/submodules/Maestro'
+package_name = 'dvl_data'
+dvl = 'dvl_data/dvl-python'
 setup(
     name=package_name,
     version='0.0.0',
-    packages=[package_name, submodules, maestro],
+    packages=[package_name, f"{package_name}.dvl-python.serial.wldvl", f"{package_name}.dvl-python.serial", dvl],
     data_files=[
         ('share/ament_index/resource_index/packages',
             ['resource/' + package_name]),
@@ -21,12 +20,12 @@ setup(
     zip_safe=True,
     maintainer='jake tucker',
     maintainer_email='tuckerjake11@gmail.com',
-    description='Package to take joystick input and send it to the motors',
+    description='Get and publish data from the DVL to ROS',
     license='TODO: License declaration',
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'motor_control = teleoperation.joyListener:main'
+            'dvl_publisher = dvl_data.DVL_subpub:main'
         ],
     },
 )
