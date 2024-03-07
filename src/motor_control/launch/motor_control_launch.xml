@@ -1,0 +1,3 @@
+<launch>
+  <node pkg="motor_control" exec="cmd_convert" name="cmd_convert"/>
+</launch>

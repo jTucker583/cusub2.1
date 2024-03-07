@@ -1,0 +1,13 @@
+max_vel_x : 5
+max_vel_y : 5
+max_vel_z : 2
+max_vel_az : 2
+
+max_depth : 1
+min_Depth : 0
+
+max_PWM : 1900
+neutral_PWM : 1490
+min_PWM : 1080
+
+PWM_multiplier : 82

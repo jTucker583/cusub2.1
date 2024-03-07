@@ -4,9 +4,9 @@ from setuptools import setup
 # for setuptools, use version 58.2.0 to avoid stderr msg
 from setuptools import find_packages
 
-package_name = 'teleoperation'
-submodules = 'teleoperation/submodules'
-maestro = 'teleoperation/submodules/Maestro'
+package_name = 'motor_control'
+submodules = 'motor_control/submodules'
+maestro = 'motor_control/submodules/Maestro'
 setup(
     name=package_name,
     version='0.0.0',
@@ -19,15 +19,14 @@ setup(
     ],
     install_requires=['setuptools'],
     zip_safe=True,
-    maintainer='jake tucker',
+    maintainer='jake',
     maintainer_email='tuckerjake11@gmail.com',
-    description='Package to take joystick input and send it to the motors',
+    description='TODO: Package description',
     license='TODO: License declaration',
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'cmd_map = teleoperation.joyListener:main'
-            
+            'cmd_convert = motor_control.cmd_convert:main'
         ],
     },
 )
