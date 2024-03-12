@@ -24,11 +24,7 @@ class motorController:
         self.port = '/dev/ttyACM0'
         self.serial = None
         try:
-<<<<<<< HEAD
             self.serial = serial.Serial(self.port, 9600, timeout=1) 
-=======
-            self.serial = serial.Serial(self.port, 9600, timeout=1) # need to reference the class lmao 
->>>>>>> 0ead55826b66233d00200f5969729b44698c5743
         except:
             print("Error opening serial port {port}")
         
