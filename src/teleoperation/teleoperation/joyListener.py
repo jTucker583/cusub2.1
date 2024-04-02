@@ -72,6 +72,7 @@ class JoyListener(Node):
         self.slinear_y = msg.linear.y
         self.slinear_z = msg.linear.z
         self.sangular_z = msg.angular.z
+        self.publish_cmd()
 
     def publish_cmd(self):
         # Create Twist message
