@@ -21,7 +21,7 @@ class pid_controller(Node):
         self.publisher_.publish(msg)
         self.i += 1
     def current_pose_callback(self):
-        
+        pass
 
 
 def main(args=None):
