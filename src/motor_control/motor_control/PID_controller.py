@@ -17,6 +17,7 @@ class pid_controller(Node):
         self.goal = Pose()
         self.currentPosition = Pose()
         self.Kp = 1
+        self.limit = 50
         self.i = 0
 
     def controller_callback(self, msgPose):
@@ -34,6 +35,8 @@ class pid_controller(Node):
         msg = Twist()
         while(not self.at_goal):
             diff = self.getDistance
+            if(diff > self.limit):
+                diff = self.limit
 
             if(self.currentPosition.position.x < self.goal.position.x):
                 msg.linear.x = self.Kp * diff
