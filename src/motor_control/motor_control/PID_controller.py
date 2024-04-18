@@ -57,7 +57,7 @@ class pid_controller(Node):
     def getDistance(self):
         return math.sqrt((self.goal.position.x - self.currentPosition.position.x)**2 +
                          (self.goal.position.y - self.currentPosition.position.y)**2 +
-                         (self.goal.position.y - self.currentPosition.position.y)**2)
+                         (self.goal.position.z - self.currentPosition.position.z)**2)
     
                     
 
