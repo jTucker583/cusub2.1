@@ -18,6 +18,7 @@ class pid_controller(Node):
         self.currentPosition = Pose()
         self.Kp = 1
         self.limit = 50
+        self.deadzone = 1
         self.i = 0
 
     def controller_callback(self, msgPose):
@@ -25,16 +26,12 @@ class pid_controller(Node):
 
     def current_pose_callback(self, msg):
         self.currentPosition = msg
-
-    def at_goal(self):
-        return (self.goal.position.x == self.currentPosition.position.x and 
-                self.goal.position.y == self.currentPosition.position.y and
-                self.goal.position.z == self.currentPosition.position.z)
-    
+ 
     def pidLoop(self):
         msg = Twist()
-        while(not self.at_goal):
-            diff = self.getDistance
+        diff = self.getDistance()
+        while(diff > self.deadzone):
+            diff = self.getDistance()
             if(diff > self.limit):
                 diff = self.limit
 
