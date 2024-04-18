@@ -3,11 +3,11 @@ max_vel_y : 5
 max_vel_z : 2
 max_vel_az : 2
 
-max_depth : 1
-min_Depth : 0
+max_Depth : -0.1 # may need to change based on DVL readings
+min_Depth : -3 # may need to change based on DVL readings
 
 max_PWM : 1900
 neutral_PWM : 1490
 min_PWM : 1080
 
-PWM_multiplier : 82
+PWM_multiplier : 82 # calculated by taking the max_PWM = max_vel * x, where x = PWM_multiplier (converts vel to PWM)

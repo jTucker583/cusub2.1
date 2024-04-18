@@ -18,16 +18,17 @@ class DVL(Node):
         self.publisher_ = self.create_publisher(String, 'DVL_Data', 10)
         self.timer_ = self.create_timer(0.1, self.data_callback)  # Call data_callback every 0.1 seconds
         try:
-            self.dvl = WlDVL("port to DVL")
+            self.dvl = WlDVL('/dev/ttyUSB0')
         except:
             self.dvl = None
     def data_callback(self):
         msg = String()
-        if self.dvl is not None:
-            msg.data = dvl.read()
+        if self.dvl is not None and msg.data is not None:
+            msg.data = str(self.dvl.read())
+            if (msg.data is not None):
+                self.publisher_.publish(msg)
         else:
             msg.data = 'Error conencting to DVL'
-        self.publisher_.publish(msg)
 
 
 def main(args=None):
@@ -42,3 +43,4 @@ def main(args=None):
 
 if __name__ == '__main__':
     main()
+

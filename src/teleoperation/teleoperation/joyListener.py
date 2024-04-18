@@ -26,17 +26,33 @@ class JoyListener(Node):
 
     def __init__(self):
         super().__init__('joyListener')
-        self.subscription = self.create_subscription(
+        self.joy_sub = self.create_subscription(
             Joy, # msg type
             '/joy', # topic to listen to
             self.listener_callback, #callback fxn
+            10 # overflow queue
+        )
+        self.cmd_sub = self.create_subscription(
+            Twist, # msg type
+            '/sys_cmd_vel', # topic to listen to
+            self.sys_cmd_vel_callback, #callback fxn
             10 # overflow queue
         )
         self.publisher = self.create_publisher(
             Twist,
             '/cmd_vel',
             10)
-        self.subscription
+        self.joy_sub
+        self.cmd_sub
+        self.jlinear_x = 0
+        self.jlinear_y = 0
+        self.jlinear_z = 0
+        self.jangular_z = 0
+        self.slinear_x = 0
+        self.slinear_y = 0
+        self.slinear_z = 0
+        self.sangular_z = 0
+        self.publish_cmd()
 
     # def listener_callback(self, msg): # test fxn for joy_node
     #     mc = motorController()
@@ -45,19 +61,44 @@ class JoyListener(Node):
     #         mc.run(channels,msg.axes[1])
     def listener_callback(self, msg):
         # Need to adjust values
-        linear_x = msg.axes[1]  # forward/backward
-        linear_y = msg.axes[0]  # side to side
-        linear_z = msg.axes[5]  # depth control (need point implementation)
-        angular_z = msg.axes[2]  # yah
+        self.jlinear_x = msg.axes[1] * MAXVEL_X # forward/backward
+        self.jlinear_y = msg.axes[0] * MAXVEL_Y # side to side
+        self.jlinear_z = msg.axes[5] * MAXVEL_Z # depth control (need point implementation)
+        self.jangular_z = msg.axes[2] * MAXVEL_AZ # yah
+        self.publish_cmd()
 
+    def sys_cmd_vel_callback(self, msg):
+        self.slinear_x = msg.linear.x
+        self.slinear_y = msg.linear.y
+        self.slinear_z = msg.linear.z
+        self.sangular_z = msg.angular.z
+        self.publish_cmd()
+
+    def publish_cmd(self):
         # Create Twist message
         twist_msg = Twist()
-        twist_msg.linear.x = linear_x * MAXVEL_X
-        twist_msg.linear.y = linear_y * MAXVEL_Y
-        twist_msg.linear.z = linear_z * MAXVEL_Z
-        twist_msg.angular.z = angular_z * MAXVEL_AZ
-
-        # Publish Twist message
+        
+        # Publish jlinear data if available, otherwise use slinear data
+        if self.jlinear_x is not None and self.jlinear_x != 0:
+            twist_msg.linear.x = float(self.jlinear_x)
+        else:
+            twist_msg.linear.x = float(self.slinear_x)
+            
+        if self.jlinear_y is not None and self.jlinear_y != 0:
+            twist_msg.linear.y = float(self.jlinear_y)
+        else:
+            twist_msg.linear.y = float(self.slinear_y)
+            
+        if self.jlinear_z is not None and self.jlinear_z != 0:
+            twist_msg.linear.z = float(self.jlinear_z)
+        else:
+            twist_msg.linear.z = float(self.slinear_z)
+            
+        if self.jangular_z is not None and self.jangular_z != 0:
+            twist_msg.angular.z = float(self.jangular_z)
+        else:
+            twist_msg.angular.z = float(self.sangular_z)
+            
         self.publisher.publish(twist_msg)
 
 def main(args=None):

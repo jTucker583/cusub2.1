@@ -1,7 +1,7 @@
 """
-    AUTHOR: XAVIER O'KEEFE
-    CONTACT: xaok7569@colorado.edu
-    PURPOSE: Create class for basic motor control functions
+    AUTHOR: JAKE TUCKER
+    CONTACT: jakob.tucker@colorado.edu
+    PURPOSE: Convert cmd_vel commands to PWM values 
 """
 import serial
 import time
@@ -24,7 +24,7 @@ class motorController:
         self.port = '/dev/ttyACM0'
         self.serial = None
         try:
-            self.serial = serial.Serial(self.port, 9600, timeout=1) # need to reference the class lmao 
+            self.serial = serial.Serial(self.port, 9600, timeout=1) 
         except:
             print("Error opening serial port {port}")
         
@@ -38,7 +38,6 @@ class motorController:
             duration (int, optional): duration of command. Defaults to -1 (runs once).
         """
         targetPWM = round(4 * (NEUTRAL_PWM + target * PWM_MULTIPLIER)) # target is cmd_vel
-        targetPWM = targetPWM
         targetBytes = [(targetPWM & 0x7F), ((targetPWM >> 7) & 0x7F)]
         for channel in channels: # loop through channels
             finalCommand = [0x84, channel] + targetBytes # Send 4 byte command to maestro
