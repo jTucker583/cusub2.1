@@ -1,4 +1,6 @@
-#PID Loop 
+#PID Loop: only uses P and D term. I think integral term is not needed because, unlike cars and stuff, stopping the motors will cause
+# the sub to glide and not instantly stop which should reduce the problem of the sub getting infinitely close to the goal. I think it works but it is untested
+# and could have dumb errors. Kp and Kd values will need to be tuned.
 
 import rclpy
 from rclpy.node import Node
@@ -49,8 +51,8 @@ class pid_controller(Node):
             xDiff = self.goal.position.x - self.currentPosition.position.x
             yDiff = self.goal.position.y - self.currentPosition.position.y
             zDiff = self.goal.position.z - self.currentPosition.position.z
-
-            xDerivative = (xDiff - prevDimDiff[0])/(time.time() - prevTime)
+            # The derivative term reduces the output based on how fast we are getting to the goal which should reduce overshoot.
+            xDerivative = (xDiff - prevDimDiff[0])/(time.time() - prevTime) 
             yDerivative = (yDiff - prevDimDiff[1])/(time.time() - prevTime)
             zDerivative = (zDiff - prevDimDiff[2])/(time.time() - prevTime)
 
@@ -77,7 +79,7 @@ class pid_controller(Node):
         
             self.publisher_.publish(msg)
 
-            time.sleep(0.25)
+            time.sleep(0.25) # this could be completely uneeded but IDK if we want to limit the rate of commands send.
 
     def getDistance(self):
         return math.sqrt((self.goal.position.x - self.currentPosition.position.x)**2 +
