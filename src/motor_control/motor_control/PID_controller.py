@@ -42,6 +42,9 @@ class pid_controller(Node):
         prevDiff = diff
 
         while(True):
+
+            diff = self.getDistance()
+            if(diff < self.deadzone): break
             
             xDiff = self.goal.position.x - self.currentPosition.position.x
             yDiff = self.goal.position.y - self.currentPosition.position.y
@@ -71,9 +74,6 @@ class pid_controller(Node):
             prevDimDiff[2] = zDiff
 
             prevDiff = diff
-            diff = self.getDistance()
-
-            if(diff < self.deadzone): break
         
             self.publisher_.publish(msg)
 
