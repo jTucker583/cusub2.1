@@ -1,7 +1,10 @@
+#PID Loop 
+
 import rclpy
 from rclpy.node import Node
 
 import math
+import time
 
 from geometry_msgs.msg import Twist
 from geometry_msgs.msg import Pose
@@ -17,9 +20,8 @@ class pid_controller(Node):
         self.goal = Pose()
         self.currentPosition = Pose()
         self.Kp = 1
-        self.limit = 50
+        self.Kd = 0.1
         self.deadzone = 1
-        self.i = 0
 
     def controller_callback(self, msgPose):
         self.goal = msgPose
@@ -28,28 +30,54 @@ class pid_controller(Node):
         self.currentPosition = msg
  
     def pidLoop(self):
+        prevDimDiff = [
+            self.goal.position.x - self.currentPosition.position.x,
+            self.goal.position.y - self.currentPosition.position.y,
+            self.goal.position.z - self.currentPosition.position.z
+        ]
+
+        prevTime = time.time()
         msg = Twist()
         diff = self.getDistance()
-        while(diff > self.deadzone):
-            diff = self.getDistance()
-            if(diff > self.limit):
-                diff = self.limit
+        prevDiff = diff
 
-            if(self.currentPosition.position.x < self.goal.position.x):
-                msg.linear.x = self.Kp * diff
-            else:
-                msg.linear.x = -self.Kp * diff
-            if(self.currentPosition.position.y < self.goal.position.y):
-                msg.linear.y = self.Kp * diff
-            else:
-                msg.linear.y = -self.Kp * diff
-            if(self.currentPosition.position.z < self.goal.position.z):
-                msg.linear.z = self.Kp * diff 
-            else:
-                msg.linear.z = -self.Kp * diff
+        while(True):
             
+            xDiff = self.goal.position.x - self.currentPosition.position.x
+            yDiff = self.goal.position.y - self.currentPosition.position.y
+            zDiff = self.goal.position.z - self.currentPosition.position.z
 
+            xDerivative = (xDiff - prevDimDiff[0])/(time.time() - prevTime)
+            yDerivative = (yDiff - prevDimDiff[1])/(time.time() - prevTime)
+            zDerivative = (zDiff - prevDimDiff[2])/(time.time() - prevTime)
+
+            prevTime = time.time()
+
+            xOutPut = (self.Kp * xDiff) + (self.Kd * xDerivative) 
+            yOutPut = (self.Kp * yDiff) + (self.Kd * yDerivative) 
+            zOutPut = (self.Kp * zDiff) + (self.Kd * zDerivative) 
+
+            if(xDiff < 0): xOutPut *= -1
+            if(yDiff < 0): yOutPut *= -1
+            if(zDiff < 0): zOutPut *= -1 
+
+            msg.linear.x = xOutPut
+            msg.linear.y = yOutPut
+            msg.linear.z = zOutPut
+
+
+            prevDimDiff[0] = xDiff
+            prevDimDiff[1] = yDiff
+            prevDimDiff[2] = zDiff
+
+            prevDiff = diff
+            diff = self.getDistance()
+
+            if(diff < self.deadzone): break
+        
             self.publisher_.publish(msg)
+
+            time.sleep(0.25)
 
     def getDistance(self):
         return math.sqrt((self.goal.position.x - self.currentPosition.position.x)**2 +
