@@ -3,17 +3,18 @@
     CONTACT: xaok7569@colorado.edu
     PURPOSE: Test code to test motor controller
 """
-from motorController import motorController
-from Maestro import maestro
+from submodules.motorController import motorController
+from submodules.Maestro import maestro
 import time
-
+print("running")
 # All of this servo code is needed to clear maestro errors
 servo = maestro.Controller()
 servo.setSpeed(0,1900)     #set speed of servo 1
-x = servo.getPosition(1) #get the current position of servo 1
+# x = servo.getPosition(1) #get the current position of servo 1
 servo.sendCmd(chr(0x21))
 time.sleep(1)
 x = servo.usb.read()
+print(x)
 print(x.hex())
 servo.close()
 
