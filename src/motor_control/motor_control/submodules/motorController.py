@@ -10,7 +10,7 @@ from .Maestro import maestro
 import yaml
 
 PWM_MULTIPLIER = 0
-NEUTRAL_PWM = 0
+NEUTRAL_PWM = 1490
 with open('src/cfg/sub_properties.yaml') as f:
     file = yaml.safe_load(f)
     PWM_MULTIPLIER = file['PWM_multiplier']
@@ -29,7 +29,7 @@ class motorController:
             print("Error opening serial port {port}")
         
 
-    def run(self, channels, target, duration=-1):
+    def run(self, channels, target, duration=-1, multiplier=PWM_MULTIPLIER):
         """Sends a PWM command to a set of servos
 
         Args:
@@ -37,7 +37,8 @@ class motorController:
             target (int): target PWM value
             duration (int, optional): duration of command. Defaults to -1 (runs once).
         """
-        targetPWM = round(4 * (NEUTRAL_PWM + target * PWM_MULTIPLIER)) # target is cmd_vel
+        if target > 1900: target = 1900
+        targetPWM = round(4 * (NEUTRAL_PWM + target * multiplier)) # target is cmd_vel
         targetBytes = [(targetPWM & 0x7F), ((targetPWM >> 7) & 0x7F)]
         for channel in channels: # loop through channels
             finalCommand = [0x84, channel] + targetBytes # Send 4 byte command to maestro
@@ -46,6 +47,11 @@ class motorController:
             time.sleep(duration)
             self.killAll(channels)
         return targetPWM
+    
+    def run(self, channels, raw_pwm):
+        """
+        TODO: Send raw PWM value to servos
+        """
 
     def killAll(self, channels):
         """Send the neutral PWM command to the list of servos
