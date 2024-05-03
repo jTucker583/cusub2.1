@@ -25,25 +25,41 @@ class cmd_convert(Node):
         self.mc = motorController()
 
     def listener_callback(self, msg): # test fxn for joy_node
-        if(msg.linear.x != 0): # only send a command when vel is not 0
-            channels = [0,1,2,3,4,5,6,7] # dummy channel list
-            self.get_logger().info(f"Recieved: {self.mc.run(channels,msg.linear.x) / 4}") # debug
-        if(msg.linear.y != 0): # only send a command when vel is not 0
-            channels = [0,1,2,3,4,5,6,7] # dummy channel list
-            self.mc.run(channels,msg.linear.y)
+        if(msg.linear.x > 0): # only send a command when vel is not 0
+            channels = [0,1,2,7] # dummy channel list
+            self.mc.run(channels,msg.linear.x, INVERT=False)
+        elif(msg.linear.x < 0):
+            channels = [0,1,2,7] # dummy channel list
+            self.mc.run(channels,msg.linear.x, INVERT=True)
+        if(msg.linear.y > 0): # only send a command when vel is not 0
+            forward_channels = [7,1] # dummy channel list
+            backward_channels = [2,0] # dummy channel list
+            self.mc.run(forward_channels,msg.linear.y, INVERT=False)
+            self.mc.run(backward_channels,msg.linear.y, INVERT=True)
+        elif(msg.linear.y < 0): # only send a command when vel is not 0
+            forward_channels = [2,0] # dummy channel list
+            backward_channels = [7,1] # dummy channel list
+            self.mc.run(forward_channels,msg.linear.y, INVERT=False)
+            self.mc.run(backward_channels,msg.linear.y, INVERT=True)
+        if(msg.linear.x == 0 and msg.linear.y == 0 and msg.angular.z == 0):
+            channels = [0,1,2,7]
+            self.mc.killAll(channels)
         if(msg.linear.z != 0): # only send a command when vel is not 0
-            # t = 0.1 # measured in seconds
-            # self.pose.position.z = msg.linear.z / 2 * t + self.depth
-            # self.position_publish.publish(self.pose)
-            # pmsg = Bool()
-            # pmsg.data = True
-            # self.valid_publish.publish(pmsg)
-            # self.get_logger().info(f"Depth: {self.pose.position.z}")
-            channels = [0,1,2,3,4,5,6,7] # dummy channel list
-            self.mc.run(channels,msg.linear.z)
-        if(msg.angular.z != 0): # only send a command when vel is not 0
-            channels = [0,1,2,3,4,5,6,7] # dummy channel list
-            self.mc.run(channels,msg.angular.z)
+            channels = [3,4,5,6] # dummy channel list
+            self.mc.run(channels,msg.linear.z, INVERT=False)
+        else:
+            channels = [3,4,5,6]
+            self.mc.killAll(channels)
+        if(msg.angular.z > 0): # spin left?
+            forward_channels = [7,2] # dummy channel list
+            backward_channels = [0,1] # dummy channel list
+            self.mc.run(forward_channels,msg.linear.y, INVERT=False)
+            self.mc.run(backward_channels,msg.linear.y, INVERT=True)
+        elif(msg.angular.z < 0): # spin right?
+            forward_channels = [0,1] # dummy channel list
+            backward_channels = [7,2] # dummy channel list
+            self.mc.run(forward_channels,msg.linear.y, INVERT=False)
+            self.mc.run(backward_channels,msg.linear.y, INVERT=True)
     
 
 

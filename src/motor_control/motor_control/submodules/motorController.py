@@ -29,7 +29,7 @@ class motorController:
             print("Error opening serial port {port}")
         
 
-    def run(self, channels, target, duration=-1, multiplier=PWM_MULTIPLIER):
+    def run(self, channels, target, duration=-1, multiplier=PWM_MULTIPLIER, INVERT=False):
         """Sends a PWM command to a set of servos
 
         Args:
@@ -37,21 +37,25 @@ class motorController:
             target (int): target PWM value
             duration (int, optional): duration of command. Defaults to -1 (runs once).
         """
-        if target > 1900: target = 1900
-        targetPWM = round(4 * (NEUTRAL_PWM + target * multiplier)) # target is cmd_vel
+        INVERTER = 1
+        if(INVERT):
+            INVERTER = -1
+        if (target > 1640): target = 1640
+        elif (target < 1340): target = 1340
+        targetPWM = round(4 * (NEUTRAL_PWM + INVERTER * (target * multiplier))) # target is cmd_vel
         targetBytes = [(targetPWM & 0x7F), ((targetPWM >> 7) & 0x7F)]
         for channel in channels: # loop through channels
             finalCommand = [0x84, channel] + targetBytes # Send 4 byte command to maestro
             if self.serial is not None: self.serial.write(bytearray(finalCommand))
-        if duration != -1: # if duration parameter is passed
-            time.sleep(duration)
-            self.killAll(channels)
+        # if duration != -1: # if duration parameter is passed
+        #     time.sleep(duration)
+        #     self.killAll(channels)
         return targetPWM
     
-    def run(self, channels, raw_pwm):
-        """
-        TODO: Send raw PWM value to servos
-        """
+    # def run(self, channels, raw_pwm):
+    #     """
+    #     TODO: Send raw PWM value to servos
+    #     """
 
     def killAll(self, channels):
         """Send the neutral PWM command to the list of servos
