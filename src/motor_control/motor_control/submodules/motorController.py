@@ -29,20 +29,29 @@ class motorController:
             print("Error opening serial port {port}")
         
 
-    def run(self, channels, target, duration=-1, multiplier=PWM_MULTIPLIER, INVERT=False):
+    def run(self, channels, target=0, duration=-1, multiplier=PWM_MULTIPLIER, INVERT=False, raw_pwm=False):
         """Sends a PWM command to a set of servos
 
         Args:
             channels (int[]): list of integer channels from the maestro
-            target (int): target PWM value
+            target (int): target PWM value (can be cmd_vel value or raw PWM value)
             duration (int, optional): duration of command. Defaults to -1 (runs once).
+            multiplier (float, optional): multiplier for cmd_vel values. Defaults to PWM_MULTIPLIER.
+            INVERT (bool, optional): inverts the target value. Defaults to False.
+            raw_pwm (bool, optional): if True, target is raw PWM value. Defaults to False.
         """
         INVERTER = 1
         if(INVERT):
             INVERTER = -1
-        if (target > 1640): target = 1640
-        elif (target < 1340): target = 1340
-        targetPWM = round(4 * (NEUTRAL_PWM + INVERTER * (target * multiplier))) # target is cmd_vel
+            
+        if raw_pwm:
+            targetPWM = round(4 * (NEUTRAL_PWM + INVERTER * (target * multiplier)))
+        else:
+            targetPWM = target
+            
+        if (targetPWM > 1640): targetPWM = 1640
+        elif (targetPWM < 1340): targetPWM = 1340
+        
         targetBytes = [(targetPWM & 0x7F), ((targetPWM >> 7) & 0x7F)]
         for channel in channels: # loop through channels
             finalCommand = [0x84, channel] + targetBytes # Send 4 byte command to maestro

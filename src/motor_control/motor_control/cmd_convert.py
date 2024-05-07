@@ -6,6 +6,7 @@ from geometry_msgs.msg import Pose
 from std_msgs.msg import Bool
 from sensor_msgs.msg import Joy
 from std_msgs.msg import String
+import testMC # importing this clears the motors for use
 """
 AUTHOR: JAKE TUCKER
 EMAIL: jakob.tucker@colorado.edu
@@ -20,11 +21,13 @@ class cmd_convert(Node):
             'cmd_vel',
             self.listener_callback,
             10)
-
-        # exec('testMC.py') # clear the motors for use
+        self.last_msg_time = self.get_clock().now()
+        self.timeout = 0.01 # 10 ms
+        self.timer = self.create_timer(self.timeout, self.check_timeout)
         self.mc = motorController()
 
     def listener_callback(self, msg): # test fxn for joy_node
+        
         if(msg.linear.x > 0): # only send a command when vel is not 0
             channels = [0,1,2,7] # dummy channel list
             self.mc.run(channels,msg.linear.x, INVERT=False)
@@ -60,6 +63,11 @@ class cmd_convert(Node):
             backward_channels = [7,2] # dummy channel list
             self.mc.run(forward_channels,msg.linear.y, INVERT=False)
             self.mc.run(backward_channels,msg.linear.y, INVERT=True)
+    
+    def check_timeout(self):
+        if (self.get_clock().now() - self.last_msg_time).seconds > self.timeout:
+            channels = [0, 1, 2, 3, 4, 5, 6, 7]
+            self.mc.killAll(channels)
     
 
 

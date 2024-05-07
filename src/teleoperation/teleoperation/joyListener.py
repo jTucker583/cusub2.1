@@ -53,6 +53,7 @@ class JoyListener(Node):
         self.slinear_z = 0
         self.sangular_z = 0
         self.publish_cmd()
+        
 
     # def listener_callback(self, msg): # test fxn for joy_node
     #     mc = motorController()
@@ -67,6 +68,7 @@ class JoyListener(Node):
         self.jlinear_z = msg.axes[5] * MAXVEL_Z # depth control (need point implementation)
         self.jangular_z = msg.axes[2] * MAXVEL_AZ # yah
         self.publish_cmd()
+        self.get_logger().info("running callback")
 
     def sys_cmd_vel_callback(self, msg):
         self.slinear_x = msg.linear.x
