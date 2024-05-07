@@ -44,7 +44,7 @@ class motorController:
         if(INVERT):
             INVERTER = -1
             
-        if raw_pwm:
+        if not raw_pwm:
             targetPWM = round(4 * (NEUTRAL_PWM + INVERTER * (target * multiplier)))
         else:
             targetPWM = target

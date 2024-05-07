@@ -69,6 +69,44 @@ class cmd_convert(Node):
             channels = [0, 1, 2, 3, 4, 5, 6, 7]
             self.mc.killAll(channels)
     
+    def experimental_callback(self, msg):
+        # convert msg to PWM here, and do proportion logic
+        INVERTER = -1
+        x_channels = [0,1,2,7]
+        y_forward_channels = [1,7]
+        y_backward_channels = [0,2]
+        z_channels = [3,4,5,6]
+        az_forward_channels = [2,7]
+        az_backward_channels = [0,1]
+        
+        xmsg = msg.linear.x
+        ymsg = msg.linear.y
+        zmsg = msg.linear.z
+        azmsg = msg.angular.z
+        # proportion logic
+        sum_axis = sum(xmsg, ymsg, azmsg)
+        
+        if (sum_axis > 12): # look at sub_properties.yaml
+            xmsg = xmsg / sum_axis
+            ymsg = ymsg / sum_axis
+            azmsg = azmsg / sum_axis
+            
+        
+        x_targetPWM = self.convert_to_PWM(xmsg)
+        y_targetPWM = self.convert_to_PWM(ymsg)
+        z_targetPWM = self.convert_to_PWM(zmsg)
+        az_targetPWM = self.convert_to_PWM(azmsg)
+        
+        self.mc.run(x_channels, x_targetPWM, raw_pwm=True)
+        self.mc.run(y_forward_channels, y_targetPWM, raw_pwm=True)
+        self.mc.run(y_backward_channels, y_targetPWM * INVERTER, raw_pwm=True)
+        self.mc.run(z_channels, z_targetPWM, raw_pwm=True)
+        self.mc.run(az_forward_channels, az_targetPWM, raw_pwm=True)
+        self.mc.run(az_backward_channels, az_targetPWM * INVERTER, raw_pwm=True)
+        
+        
+    def convert_to_PWM(self, target, multiplier=30):
+        return round(4 * (1490 + (target * multiplier)))
 
 
 def main(args=None):
