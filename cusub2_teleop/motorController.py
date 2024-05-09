@@ -19,9 +19,13 @@ class motorController:
         } 
         
 
-    def run(self, channels, target, duration=-1):
-        targetPWM = round(4 * (1490 + 410*target)) # Multiply by 4 for Maestro
-        targetPWM = targetPWM
+    def run(self, channels, target, duration=-1, grip=False):
+        if(grip):
+            targetPWM = round(4 * (1500 + 400 * target))
+        else: 
+            targetPWM = round(4 * (1490 + 410*target)) # Multiply by 4 for Maestro
+            targetPWM = targetPWM
+
         targetBytes = [(targetPWM & 0x7F), ((targetPWM >> 7) & 0x7F)]
         for channel in channels: # loop through channels
             finalCommand = [0x84, channel] + targetBytes # Send 4 byte command to maestro
