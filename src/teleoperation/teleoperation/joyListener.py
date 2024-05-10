@@ -9,6 +9,7 @@ from rclpy.node import Node
 from sensor_msgs.msg import Joy
 from geometry_msgs.msg import Twist
 import yaml
+from .submodules.motorController import motorController
 
 MAXVEL_X = 0
 MAXVEL_Y = 0
@@ -53,6 +54,7 @@ class JoyListener(Node):
         self.slinear_z = 0
         self.sangular_z = 0
         self.publish_cmd()
+        self.mc = motorController()
         
 
     # def listener_callback(self, msg): # test fxn for joy_node
@@ -67,7 +69,17 @@ class JoyListener(Node):
         self.jlinear_y = msg.axes[0] * MAXVEL_Y # side to side
         self.jlinear_z = msg.axes[5] * MAXVEL_Z # depth control (need point implementation)
         self.jangular_z = msg.axes[2] * MAXVEL_AZ # yah
+        self.mc.run([9],self.convert_to_PWM(msg.axes[3]) * 4, raw_pwm=True)
+        if (int(msg.buttons[0])):
+            self.get_logger().info("pressing 1")
+            self.mc.run([8],1200 * 4, 1, raw_pwm=True)
+        else:
+            self.get_logger().info("pressing 0")
+            self.mc.run([8],1800 * 4, 1, raw_pwm=True)
         self.publish_cmd()
+    
+    def convert_to_PWM(self, axis):
+        return 1500 + 390 * axis
 
     def sys_cmd_vel_callback(self, msg):
         self.slinear_x = msg.linear.x
