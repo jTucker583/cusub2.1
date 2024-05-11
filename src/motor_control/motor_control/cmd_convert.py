@@ -6,6 +6,7 @@ from geometry_msgs.msg import Pose
 from std_msgs.msg import Bool
 from sensor_msgs.msg import Joy
 from std_msgs.msg import String
+import numpy as np
 # import testMC # importing this clears the motors for use
 """
 AUTHOR: JAKE TUCKER
@@ -19,7 +20,7 @@ class cmd_convert(Node):
         self.cmd_vel_sub = self.create_subscription(
             Twist,
             'cmd_vel',
-            self.listener_callback,
+            self.experimental_callback,
             10)
         self.last_msg_time = self.get_clock().now()
         self.mc = motorController()
@@ -65,40 +66,51 @@ class cmd_convert(Node):
         # convert msg to PWM here, and do proportion logic
         INVERTER = -1
         x_channels = [0,1,2,7]
-        y_forward_channels = [1,7]
-        y_backward_channels = [0,2]
+        y_channels = [1,7]
+        y_inverted_channels = [0,2]
         z_channels = [3,4,5,6]
-        az_forward_channels = [2,7]
-        az_backward_channels = [0,1]
-        
+        az_channels = [2,7]
+        az_inverted_channels = [0,1]
         xmsg = msg.linear.x
         ymsg = msg.linear.y
         zmsg = msg.linear.z
         azmsg = msg.angular.z
         # proportion logic
-        sum_axis = sum(xmsg, ymsg, azmsg)
-        
-        if (sum_axis > 12): # look at sub_properties.yaml
-            xmsg = xmsg / sum_axis
-            ymsg = ymsg / sum_axis
-            azmsg = azmsg / sum_axis
+        # sum_axis = sum(abs(xmsg), abs(ymsg), abs(azmsg))
+        # sum_pwm = sum(self.convert_to_PWM(xmsg), self.convert_to_PWM(ymsg), self.convert_to_PWM(azmsg))
+        # if (sum_axis == 0): # look at sub_properties.yaml
+        #     sum_axis = 1
+        # xmsg = xmsg / sum_axis
+        # ymsg = ymsg / sum_axis
+        # azmsg = azmsg / sum_axis
             
         
         x_targetPWM = self.convert_to_PWM(xmsg)
         y_targetPWM = self.convert_to_PWM(ymsg)
+        y_inv_targetPWM = self.convert_to_PWM(ymsg, invert=True)
         z_targetPWM = self.convert_to_PWM(zmsg)
         az_targetPWM = self.convert_to_PWM(azmsg)
+        az_inv_targetPWM = self.convert_to_PWM(azmsg, invert=True)
         
-        self.mc.run(x_channels, x_targetPWM, raw_pwm=True)
-        self.mc.run(y_forward_channels, y_targetPWM, raw_pwm=True)
-        self.mc.run(y_backward_channels, y_targetPWM * INVERTER, raw_pwm=True)
+        motors = {0 : self.calculate_motor_PWM(np.array([x_targetPWM, y_inv_targetPWM, az_inv_targetPWM])),
+                  1 : self.calculate_motor_PWM(np.array([x_targetPWM, y_targetPWM, az_inv_targetPWM])),
+                  2 : self.calculate_motor_PWM(np.array([x_targetPWM, y_inv_targetPWM, az_targetPWM])),
+                  7 : self.calculate_motor_PWM(np.array([x_targetPWM, y_targetPWM, az_targetPWM]))}
+        
+        for motor in motors:
+            self.mc.run([motor], motors[motor], raw_pwm=True)
+            self.get_logger().info(f"Motor {motor} PWM: {motors[motor]}")
         self.mc.run(z_channels, z_targetPWM, raw_pwm=True)
-        self.mc.run(az_forward_channels, az_targetPWM, raw_pwm=True)
-        self.mc.run(az_backward_channels, az_targetPWM * INVERTER, raw_pwm=True)
         
         
-    def convert_to_PWM(self, target, multiplier=30):
-        return round(4 * (1490 + (target * multiplier)))
+    def convert_to_PWM(self, target, multiplier=30, invert=False):
+        if invert:
+            return round(1490 - (target * multiplier))
+        return round(1490 + (target * multiplier))
+    
+    def calculate_motor_PWM(self, pwm_set):
+        neutral = 1490
+        return max(min(round(neutral + np.sum(pwm_set - neutral)), 1650), 1330)
 
 
 def main(args=None):

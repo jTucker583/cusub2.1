@@ -68,17 +68,26 @@ class JoyListener(Node):
     def listener_callback(self, msg):
         # Need to adjust values
         # implement logic to dermine max values to send
-        self.jlinear_x = msg.axes[1] * MAXVEL_X # forward/backward
-        self.jlinear_y = msg.axes[0] * MAXVEL_Y # side to side
-        self.jlinear_z = msg.axes[5] * MAXVEL_Z # depth control (need point implementation)
-        self.jangular_z = msg.axes[2] * MAXVEL_AZ # yah
+        x = msg.axes[1] # forward/backward
+        y = msg.axes[0] # side to side
+        z = msg.axes[5] * MAXVEL_Z # depth control (need point implementation)
+        az = msg.axes[2] # yah
+        
+        # proportion logic
+        sum_ax = abs(x) + abs(y) + abs(az)
+        if sum_ax < 1: sum_ax = 1
+        self.jlinear_x = x / sum_ax * MAXVEL_X # forward/backward
+        self.jlinear_y = y / sum_ax * MAXVEL_Y # side to side
+        self.jlinear_z = z # depth control (need point implementation)
+        self.jangular_z = az / sum_ax * MAXVEL_AZ # yaw
+        
         self.mc.run([9],self.convert_to_PWM(msg.axes[3]), raw_pwm=True)
         if (not int(msg.buttons[0])):
             self.mc.run([8],1200, 1, raw_pwm=True)
         else:
             self.mc.run([8],1800, 1, raw_pwm=True)
         
-        if(int(msg.buttons[1]) and not fmc_pressed):
+        if(int(msg.buttons[1]) and not self.fmc_pressed):
             self.fmc_pressed = True
             self.toggle_fmc()
         
@@ -92,7 +101,7 @@ class JoyListener(Node):
         self.send_light_pwm()
 
     def toggle_fmc(self):
-        if (fmc_pressed):
+        if (self.fmc_pressed):
             """
             TODO: Set global maxvel values to be lower/higher depending on fmc
             """
