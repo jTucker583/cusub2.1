@@ -63,27 +63,12 @@ class cmd_convert(Node):
             self.mc.run(backward_channels,msg.angular.z, INVERT=True)
     
     def experimental_callback(self, msg):
-        # convert msg to PWM here, and do proportion logic
-        INVERTER = -1
-        x_channels = [0,1,2,7]
-        y_channels = [1,7]
-        y_inverted_channels = [0,2]
         z_channels = [3,4,5,6]
-        az_channels = [2,7]
-        az_inverted_channels = [0,1]
+        
         xmsg = msg.linear.x
         ymsg = msg.linear.y
         zmsg = msg.linear.z
         azmsg = msg.angular.z
-        # proportion logic
-        # sum_axis = sum(abs(xmsg), abs(ymsg), abs(azmsg))
-        # sum_pwm = sum(self.convert_to_PWM(xmsg), self.convert_to_PWM(ymsg), self.convert_to_PWM(azmsg))
-        # if (sum_axis == 0): # look at sub_properties.yaml
-        #     sum_axis = 1
-        # xmsg = xmsg / sum_axis
-        # ymsg = ymsg / sum_axis
-        # azmsg = azmsg / sum_axis
-            
         
         x_targetPWM = self.convert_to_PWM(xmsg)
         y_targetPWM = self.convert_to_PWM(ymsg)

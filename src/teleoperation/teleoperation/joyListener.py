@@ -56,6 +56,7 @@ class JoyListener(Node):
         self.publish_cmd()
         self.mc = motorController()
         self.fmc_pressed = False
+        self.fmc_val = 1
         self.light_pressed = False
         self.light_on = False
         
@@ -76,39 +77,42 @@ class JoyListener(Node):
         # proportion logic
         sum_ax = abs(x) + abs(y) + abs(az)
         if sum_ax < 1: sum_ax = 1
-        self.jlinear_x = x / sum_ax * MAXVEL_X # forward/backward
-        self.jlinear_y = y / sum_ax * MAXVEL_Y # side to side
-        self.jlinear_z = z # depth control (need point implementation)
-        self.jangular_z = az / sum_ax * MAXVEL_AZ # yaw
+        self.jlinear_x = x / sum_ax * MAXVEL_X * self.fmc_val # forward/backward
+        self.jlinear_y = y / sum_ax * MAXVEL_Y * self.fmc_val # side to side
+        self.jlinear_z = z * self.fmc_val # depth control (need point implementation)
+        self.jangular_z = az / sum_ax * MAXVEL_AZ * self.fmc_val # yaw
         
         self.mc.run([9],self.convert_to_PWM(msg.axes[3]), raw_pwm=True)
         if (not int(msg.buttons[0])):
             self.mc.run([8],1200, 1, raw_pwm=True)
         else:
             self.mc.run([8],1800, 1, raw_pwm=True)
-        
         if(int(msg.buttons[1]) and not self.fmc_pressed):
-            self.fmc_pressed = True
             self.toggle_fmc()
-        
         if(int(msg.buttons[2]) and not self.light_pressed):
             self.light_on = not self.light_on
-            self.get_logger().info("pressing btn 2")
-            self.get_logger().info(f"Light on: {self.light_on}")
+            if self.light_on:
+                self.get_logger().info(f"Light ON")
+            else:
+                self.get_logger().info(f"Light OFF")
+            self.toggle_light()
+            
         self.fmc_pressed = bool(msg.buttons[1])
         self.light_pressed = bool(msg.buttons[2])
+        
         self.publish_cmd()
         self.send_light_pwm()
 
     def toggle_fmc(self):
-        if (self.fmc_pressed):
-            """
-            TODO: Set global maxvel values to be lower/higher depending on fmc
-            """
+        if (self.fmc_val == 1):
+            self.get_logger().info(f"Fine Motor Control ON")
+            self.fmc_val = 0.5
+        else:
+            self.get_logger().info(f"Fine Motor Control OFF")
+            self.fmc_val = 1
     
     def send_light_pwm(self):
         if (self.light_on):
-
             self.mc.run([10],1900)
         else:
             self.mc.run([10],1100)
