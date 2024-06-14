@@ -10,7 +10,6 @@ from sensor_msgs.msg import Joy
 from geometry_msgs.msg import Twist, Pose
 import yaml
 from .submodules.motorController import motorController
-from squaternion import Quaternion
 
 MAXVEL_X = 0
 MAXVEL_Y = 0
