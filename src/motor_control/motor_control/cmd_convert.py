@@ -60,6 +60,7 @@ class cmd_convert(Node):
             backward_channels = [7,2] # dummy channel list
             self.mc.run(forward_channels,msg.angular.z, INVERT=False)
             self.mc.run(backward_channels,msg.angular.z, INVERT=True)
+        
     
     def experimental_callback(self, msg):
         # convert msg to PWM here, and do proportion logic

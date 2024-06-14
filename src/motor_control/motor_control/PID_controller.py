@@ -71,6 +71,9 @@ class pid_controller(Node):
             msg.linear.z = zOutPut
 
 
+            msg.linear.x = 0
+            msg.linear.y = 0
+
             prevDimDiff[0] = xDiff
             prevDimDiff[1] = yDiff
             prevDimDiff[2] = zDiff
