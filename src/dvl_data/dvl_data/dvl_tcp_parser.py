@@ -5,13 +5,13 @@ import csv
 import datetime
 import json
 import socket
-
+import threading
 
 class _CSVWriter:
     def __init__(self, csv_file, message_type):
         self.csv_file = csv_file
         self.csv_writer = self._csv_writer(csv_file, message_type)
-
+        self.thread = None
     @classmethod
     def _csv_field_names(cls, message_type):
         if message_type == "velocity":
@@ -137,10 +137,16 @@ class _DVLMessage:
                 message = message_parts[-1]
 
     def startReading(self, message_type, time_format="%Y-%m-%d %H:%M:%S"):
+        if self.readingdata:
+            return
         self.readingdata = True
         self.dvl = self._start_dvl_socket()
         if self.dvl == ConnectionRefusedError:
             return ConnectionRefusedError
+        # self.thread = threading.Thread(
+        #     target=self._process_messages,
+        #     args=(self.dvl, self._type(message_type), time_format))
+        # self.thread.start()
         self._process_messages(
             self.dvl,
             self._type(message_type),

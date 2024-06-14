@@ -18,31 +18,56 @@ import asyncio
 from .dvl_tcp_parser import _DVLMessage
 import time
 import json
+import threading
 
 class DVL(Node):
 
     def __init__(self):
         super().__init__('DVLPublisher')
-        self.publisher_ = self.create_publisher(String, 'dvl_data', 10)
+        self.rawvelpub = self.create_publisher(String, 'dvl_vel_data', 10)
+        self.rawrecpub = self.create_publisher(String, 'dvl_deadrec_data', 10)
         self.twistpub = self.create_publisher(Twist, 'measured_vel', 10)
         self.posepub = self.create_publisher(Pose, 'pose', 10)
-        # self.timer_ = self.create_timer(0.2, self.getDeadreckoningData)  # Call data_callback every 0.2 seconds (dead reckoning report update cycle is 5hz)
-        self.dvlmsg = _DVLMessage()
+        self.timer_ = self.create_timer(0.2, self.publish_data)  # Call data_callback every 0.2 seconds (dead reckoning report update cycle is 5hz)
+        self.deadrecmsg = _DVLMessage()
+        self.velmsg = _DVLMessage()
         self.posemsg = Pose()
-
-        while (self.getDeadreckoningData() == ConnectionRefusedError):
-            self.get_logger().info("Error connecting to DVL")
-            time.sleep(1)
-        self.posemsg = self.convert_to_pose(self.dvlmsg.readMessage())
-        self.dvlmsg.stopReading()
-        self.get_logger().info(f"Initial Pose: {self.dvlmsg.message}")
-        if (self.posemsg is not None):
-            self.posepub.publish(self.posemsg)
-        self.get_logger().info(f"about to run deadreck")
+        self.twistmsg = Twist()
+        self.rthread = None
+        self.vthread = None
+    def publish_data(self):
+        self.get_logger().info(f"Publishing data")
         self.getDeadreckoningData()
+        self.getVelocityData()
+        self.publish_raw_deadrec()
+        self.publish_raw_velocity()
 
-    def fuckyou(self):
-        self.get_logger().info("Fuck you")
+    def convert_to_twist(self, data):
+        if (data is None):
+            return
+        parsed_data = json.loads(data)
+        self.twistmsg._linear._x = parsed_data['vx']
+        self.twistmsg._linear._y = parsed_data['vy']
+        self.twistmsg._linear._z = parsed_data['vz']
+
+    def publish_raw_deadrec(self):
+        tmp = String()
+        if self.deadrecmsg.readMessage() is None:
+            tmp.data = "No data"
+        else:
+            tmp.data = self.deadrecmsg.readMessage().to_string()
+        self.rawrecpub.publish(tmp)
+    def publish_raw_velocity(self):
+        tmp = String()
+        if self.velmsg.readMessage() is None:
+            tmp.data = "No data"
+        else:
+            tmp.data = self.velmsg.readMessage().to
+        self.rawvelpub.publish(tmp)
+
+    def publish_twist(self):
+        if (self.twistmsg is not None):
+            self.twistpub.publish(self.twistmsg)
 
     def convert_to_pose(self, data):
         if (data is None):
@@ -63,35 +88,34 @@ class DVL(Node):
         if (self.posemsg is not None):
             self.posepub.publish(self.posemsg)
 
-    async def getDeadreckoningData(self):
-        self.get_logger().info(f"running deadreck")
+    def stopReadingData(self, dvlmsg):
+        dvlmsg.stopReading()
+
+    def getDeadreckoningData(self):
         try:
-            if (not self.dvlmsg.readingdata):
-                self.dvlmsg.startReading("dead_reckoning")
+            if (not self.deadrecmsg.readingdata):
+                # self.deadrecmsg.startReading("dead_reckoning")
+                self.rthread = threading.Thread(target=self.deadrecmsg.startReading, args=("dead_reckoning"))
+            if (self.deadrecmsg.readingdata):
+                self.convert_to_pose(self.deadrecmsg.readMessage()) # updates class posemsg
+                self.publish_pose() # publishes class posemsg to ROS
         except ConnectionRefusedError:
-            self.get_logger().info(f"Error connecting to DVL")
-            return ConnectionRefusedError
-        while True:
-            self.get_logger().info(f"msg: {self.dvlmsg.readMessage()}")
-            self.pose = self.convert_to_pose(self.dvlmsg.readMessage())
-            self.publish_pose()
-            yield from asyncio.sleep(0.2)
-    
-    # @asyncio.coroutine
-    # def getVelocityData(self):
-    #     try:
-    #         self.dvlmsg.startReading("velocity")
-    #     except ConnectionRefusedError:
-    #         self.get_logger().error("Error connecting to DVL")
-    #         return ConnectionRefusedError
-    #     while not ConnectionError:
-    #         try:
-    #             data = self.dvlmsg.readMessage()
-    #         except ConnectionRefusedError:
-    #             self.get_logger().error("Error connecting to DVL")
-    #             return ConnectionRefusedError
-    #         self.twistpub.publish(data)
-    #         yield from asyncio.sleep(0.2)
+            self.get_logger().error(f"Error connecting to DVL")
+        except KeyboardInterrupt:
+            self.get_logger().info(f"Stopping DVL reading")
+
+    def getVelocityData(self):
+        try:
+            if (not self.velmsg.readingdata):
+                self.vthread = threading.Thread(target=self.velmsg.startReading, args=("velocity"))
+                # self.velmsg.startReading("velocity")
+            if (self.velmsg.readingdata):
+                self.convert_to_twist(self.velmsg.readMessage()) # updates class posemsg
+                self.publish_twist() # publishes class posemsg to ROS
+        except ConnectionRefusedError:
+            self.get_logger().error(f"Error connecting to DVL")
+        except KeyboardInterrupt:
+            self.get_logger().info(f"Stopping DVL reading")
 
     def euler_to_quaternion(self, roll, pitch, yaw):
         cy = math.cos(yaw * 0.5)
