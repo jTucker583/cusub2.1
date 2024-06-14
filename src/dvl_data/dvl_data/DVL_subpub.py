@@ -14,11 +14,11 @@ from geometry_msgs.msg import Pose
 from geometry_msgs.msg import Twist
 import serial
 import math
+import asyncio
+from dvl_tcp_parser import _DVLMessage
+import time
+import json
 
-baud_rate = 115200
-serial_port = '/dev/ttyACM1'
-# /dev/ttyUSB0
-# /dev/ttyACM0
 class DVL(Node):
 
     def __init__(self):
@@ -27,73 +27,60 @@ class DVL(Node):
         self.twistpub = self.create_publisher(Twist, 'measured_vel', 10)
         self.posepub = self.create_publisher(Pose, 'pose', 10)
         self.timer_ = self.create_timer(0.2, self.og_data_callback)  # Call data_callback every 0.2 seconds (dead reckoning report update cycle is 5hz)
+        self.dvlmsg = _DVLMessage()
+        self.posemsg = Pose()
+
+        while (self.dvlmsg._start_dvl_socket("dead_reckoning") == ConnectionRefusedError):
+            self.get_logger().error("Error connecting to DVL")
+            time.sleep(1)
+        self.posemsg = self.convert_to_pose(self.dvlmsg.readMessage())
+        self.dvlmsg.stopReading()
+        self.get_logger().info(f"Initial Pose: {self.posemsg}")
+        self.posepub.publish(self.posemsg)
+
+        self.getDeadreckoningData()
+
+    def convert_to_pose(self, data):
+        parsed_data = json.loads(data)
+        self.posemsg.position.x = parsed_data['x']
+        self.posemsg.position.y = parsed_data['y']
+        self.posemsg.position.z = parsed_data['z']
+        angdata = self.euler_to_quaternion(parsed_data['roll'],parsed_data['pitch'],parsed_data['yaw'])
+        self.posemsg.orientation.x = angdata[0]
+        self.posemsg.orientation.y = angdata[1]
+        self.posemsg.orientation.z = angdata[2]
+        self.posemsg.orientation.w = angdata[3]
+
+    def publish_pose(self):
+        self.posepub.publish(self.posemsg)
+
+    @asyncio.coroutine
+    def getDeadreckoningData(self):
         try:
-            self.dvl = WlDVL(serial_port)
-            self.ser = serial.Serial(serial_port, baud_rate)
-            self.get_logger().info(f"Protocol version cmd\n{self.sendCmd('wcv')}")
-        except Exception as err:
-            self.ser = None
-            self.get_logger().info(f"Failed to connect to DVL: {err}")
-    def og_data_callback(self):
-        msg = String()
-        if self.dvl is not None:
-            data = self.dvl.read()
-            expected_keys = {'time', 'vx', 'vy', 'vz', 'fom', 'altitude', 'valid'}
-            if (data is not None): # and all(key in data for key in expected_keys)
-                msg.data = str(data)
-                if (msg.data is not None):
-                    self.publisher_.publish(msg)
-        else:
-            msg.data = 'Error conencting to DVL'
-
-    def data_callback(self):
-        if (self.ser is None):
-            return
-        twist_msg = Twist()
-        pose_msg = Pose()
-        vel_data = [0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0]
-        pose_data = [0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0]
-        try:
-            vel_data = self.sendCmd('wrz').split(',') # velocity report
-        except:
-            pass
-        try:
-            pose_data = self.sendCmd('wrp').split(',') # dead reckoning report
-        except:
-            pass
-        self.get_logger().info(f"Dead Reckoning Data: {pose_data}")
-        self.get_logger().info(f"Velocity Thing Data: {vel_data}")
-        qw, qx, qy, qz = self.euler_to_quaternion(pose_data[5],pose_data[6],pose_data[7])
-        x, y, z = pose_data[1], pose_data[2], vel_data[4] # vel_data[4] is altitude from bottom
-
-        vx, vy, vz = vel_data[0], vel_data[1], vel_data[2]
-        
-        twist_msg.linear.x, twist_msg.linear.y, twist_msg.linear.z = vx, vy, vz
-        twist_msg.angular.x, twist_msg.angular.y, twist_msg.angular.z = pose_data[5],pose_data[6],pose_data[7] # currenly shows roll, pitch yaw
-        pose_msg.position.x, pose_msg.position.y, pose_msg.position.z = x, y, z
-        pose_msg.orientation.x, pose_msg.orientation.y, pose_msg.orientation.z, pose_msg.orientation.w = qx, qy, qz, qw
-
-        self.twistpub.publish(twist_msg)
-        self.posepub.publish(pose_msg)
-
+            self.dvlmsg.startReading("dead_reckoning")
+        except ConnectionRefusedError:
+            self.get_logger().error("Error connecting to DVL")
+            return ConnectionRefusedError
+        while not ConnectionError:
+            self.pose = self.convert_to_pose(self.dvlmsg.readMessage())
+            self.publish_pose()
+            yield from asyncio.sleep(0.2)
     
-    def deadreckoning_reset(self):
-        if (self.sendCmd('wcr') == 'wra'):
-            self.get_logger().info('Dead Reckoning Reset. pose and goal_pose topics invalidated.')
-        else:
-            self.get_logger().info("Dead Reckoning failed to Reset.")
-    
-    def sendCmd(self, command):
-        packet = command.encode() + b'\n'
-        self.ser.write(packet)
-        if self.ser.in_waiting > 0:
-            response = self.ser.readline().decode().strip()
-            self.get_logger().info(f"sendCmd")
-            return response
-        else:
-            self.get_logger().info(f"No response received")
-            return None
-
+    # @asyncio.coroutine
+    # def getVelocityData(self):
+    #     try:
+    #         self.dvlmsg.startReading("velocity")
+    #     except ConnectionRefusedError:
+    #         self.get_logger().error("Error connecting to DVL")
+    #         return ConnectionRefusedError
+    #     while not ConnectionError:
+    #         try:
+    #             data = self.dvlmsg.readMessage()
+    #         except ConnectionRefusedError:
+    #             self.get_logger().error("Error connecting to DVL")
+    #             return ConnectionRefusedError
+    #         self.twistpub.publish(data)
+    #         yield from asyncio.sleep(0.2)
 
     def euler_to_quaternion(self, roll, pitch, yaw):
         cy = math.cos(yaw * 0.5)
