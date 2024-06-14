@@ -51,6 +51,7 @@ class JoyListener(Node):
         )
         self.joy_sub
         self.cmd_sub
+        self.goalPosePub
         self.jlinear_x = 0
         self.jlinear_y = 0
         self.jlinear_z = 0
@@ -65,7 +66,8 @@ class JoyListener(Node):
         self.fmc_val = 1
         self.light_pressed = False
         self.light_on = False
-        self.lastPose = 0
+        self.setPoint = None
+
 
     # def listener_callback(self, msg): # test fxn for joy_node
     #     mc = motorController()
@@ -86,10 +88,10 @@ class JoyListener(Node):
 
         tempZ = msg.axes[5]
         if tempZ != 0.0:
-            goalPose.position.z = self.lastPose + tempZ/abs(tempZ)
-            self.lastPose = self.lastPose + tempZ/abs(tempZ)
+            goalPose.position.z = self.setPoint + tempZ/abs(tempZ)
+            self.lastPose = self.setPoint + tempZ/abs(tempZ)
         else:
-            goalPose.position.z = self.lastPose
+            goalPose.position.z = self.setPoint
 
         goalPose.orientation.x = 0
         goalPose.orientation.y = 0
