@@ -7,9 +7,10 @@ import rclpy
 from rclpy.node import Node
 # from .submodules import motorController # Class with motor control functions
 from sensor_msgs.msg import Joy
-from geometry_msgs.msg import Twist
+from geometry_msgs.msg import Twist, Pose
 import yaml
 from .submodules.motorController import motorController
+from squaternion import Quaternion
 
 MAXVEL_X = 0
 MAXVEL_Y = 0
@@ -43,8 +44,14 @@ class JoyListener(Node):
             Twist,
             '/cmd_vel',
             10)
+        self.goalPosePub = self.create_publisher(
+            Pose,
+            '/goal_pose',
+            100 # made it 100 cuz we might want backlog
+        )
         self.joy_sub
         self.cmd_sub
+        self.goalPosePub
         self.jlinear_x = 0
         self.jlinear_y = 0
         self.jlinear_z = 0
@@ -59,7 +66,8 @@ class JoyListener(Node):
         self.fmc_val = 1
         self.light_pressed = False
         self.light_on = False
-        
+        self.setPoint = None
+
 
     # def listener_callback(self, msg): # test fxn for joy_node
     #     mc = motorController()
@@ -73,6 +81,25 @@ class JoyListener(Node):
         y = msg.axes[0] # side to side
         z = msg.axes[5] * MAXVEL_Z # depth control (need point implementation)
         az = msg.axes[2] # yah
+
+        goalPose = Pose()
+        goalPose.position.x = 0
+        goalPose.position.y = 0
+
+        tempZ = msg.axes[5]
+        if tempZ != 0.0:
+            goalPose.position.z = self.setPoint + tempZ/abs(tempZ)
+            self.lastPose = self.setPoint + tempZ/abs(tempZ)
+        else:
+            goalPose.position.z = self.setPoint
+
+        goalPose.orientation.x = 0
+        goalPose.orientation.y = 0
+        goalPose.orientation.z = 0
+        goalPose.orientation.w = 0
+
+        self.goalPosePub.publish(goalPose)
+
         
         # proportion logic
         sum_ax = abs(x) + abs(y) + abs(az)
