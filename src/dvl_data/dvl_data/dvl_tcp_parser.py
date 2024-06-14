@@ -63,13 +63,13 @@ class _DVLMessage:
     def __str__(self):
         return json.dumps(self.message)
     
-    def _start_dvl_socket(dvl_ip):
+    def _start_dvl_socket(self):
         try:
             dvl_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            dvl_socket.connect((dvl_ip, 16171))
+            dvl_socket.connect((self.ip, 16171))
             return dvl_socket
         except ConnectionRefusedError:
-            return (ConnectionRefusedError, "Connection refused")
+            return ConnectionRefusedError
 
     def _type(self, message_type):
         if message_type == "velocity":
@@ -138,8 +138,8 @@ class _DVLMessage:
 
     def startReading(self, message_type, time_format="%Y-%m-%d %H:%M:%S"):
         self.readingdata = True
-        self.dvl = self._start_dvl_socket(self.ip)
-        if self.dvl[0] == ConnectionRefusedError:
+        self.dvl = self._start_dvl_socket()
+        if self.dvl == ConnectionRefusedError:
             return ConnectionRefusedError
         self._process_messages(
             self.dvl,
