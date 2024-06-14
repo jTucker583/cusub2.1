@@ -12,3 +12,6 @@ min_PWM: 1330
 
 PWM_multiplier: 30 # calculated by taking the max_PWM = neutral_PWM + max_vel * x, where x = PWM_multiplier (converts vel to PWM)
 # current multiplier is 30, such that max_PWM = 1490 + 5 * 30 = 1640
+
+maestro_port: "/dev/ttyACM0"
+# Path: src/cfg/depth_pid.yaml

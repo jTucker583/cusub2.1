@@ -6,6 +6,7 @@ from geometry_msgs.msg import Pose
 from std_msgs.msg import Bool
 from sensor_msgs.msg import Joy
 from std_msgs.msg import String
+import numpy as np
 # import testMC # importing this clears the motors for use
 """
 AUTHOR: JAKE TUCKER
@@ -19,7 +20,7 @@ class cmd_convert(Node):
         self.cmd_vel_sub = self.create_subscription(
             Twist,
             'cmd_vel',
-            self.listener_callback,
+            self.experimental_callback,
             10)
         self.last_msg_time = self.get_clock().now()
         self.mc = motorController()
@@ -27,10 +28,10 @@ class cmd_convert(Node):
     def listener_callback(self, msg): # test fxn for joy_node
         if(msg.linear.x > 0): # only send a command when vel is not 0
             channels = [0,1,2,7] # dummy channel list
-            self.get_logger().info(f"Re: {self.mc.run(channels,msg.linear.x, INVERT=False) / 4}")
+            self.get_logger().info(f"Re: {self.mc.run(channels,msg.linear.x, INVERT=False, raw_pwm=False) / 4}")
         elif(msg.linear.x < 0):
             channels = [0,1,2,7] # dummy channel list
-            self.get_logger().info(f"Re: {self.mc.run(channels,msg.linear.x, INVERT=True) / 4}")
+            self.get_logger().info(f"Re: {self.mc.run(channels,msg.linear.x, INVERT=False, raw_pwm=False) / 4}")
         if(msg.linear.y > 0): # only send a command when vel is not 0
             forward_channels = [7,1] # dummy channel list
             backward_channels = [2,0] # dummy channel list
@@ -39,8 +40,8 @@ class cmd_convert(Node):
         elif(msg.linear.y < 0): # only send a command when vel is not 0
             forward_channels = [2,0] # dummy channel list
             backward_channels = [7,1] # dummy channel list
-            self.mc.run(forward_channels,msg.linear.y, INVERT=False)
-            self.mc.run(backward_channels,msg.linear.y, INVERT=True)
+            self.mc.run(forward_channels,msg.linear.y, INVERT=True)
+            self.mc.run(backward_channels,msg.linear.y, INVERT=False)
         if(msg.linear.x == 0 and msg.linear.y == 0 and msg.angular.z == 0):
             channels = [0,1,2,7]
             self.mc.killAll(channels)
@@ -53,8 +54,8 @@ class cmd_convert(Node):
         if(msg.angular.z > 0): # spin left?
             forward_channels = [7,2] # dummy channel list
             backward_channels = [0,1] # dummy channel list
-            self.mc.run(forward_channels,msg.angular.z, INVERT=False)
-            self.mc.run(backward_channels,msg.angular.z, INVERT=True)
+            self.mc.run(forward_channels,msg.angular.z, INVERT=True)
+            self.mc.run(backward_channels,msg.angular.z, INVERT=False)
         elif(msg.angular.z < 0): # spin right?
             forward_channels = [0,1] # dummy channel list
             backward_channels = [7,2] # dummy channel list
@@ -63,43 +64,39 @@ class cmd_convert(Node):
         
     
     def experimental_callback(self, msg):
-        # convert msg to PWM here, and do proportion logic
-        INVERTER = -1
-        x_channels = [0,1,2,7]
-        y_forward_channels = [1,7]
-        y_backward_channels = [0,2]
         z_channels = [3,4,5,6]
-        az_forward_channels = [2,7]
-        az_backward_channels = [0,1]
         
         xmsg = msg.linear.x
         ymsg = msg.linear.y
         zmsg = msg.linear.z
         azmsg = msg.angular.z
-        # proportion logic
-        sum_axis = sum(xmsg, ymsg, azmsg)
-        
-        if (sum_axis > 12): # look at sub_properties.yaml
-            xmsg = xmsg / sum_axis
-            ymsg = ymsg / sum_axis
-            azmsg = azmsg / sum_axis
-            
         
         x_targetPWM = self.convert_to_PWM(xmsg)
         y_targetPWM = self.convert_to_PWM(ymsg)
-        z_targetPWM = self.convert_to_PWM(zmsg)
-        az_targetPWM = self.convert_to_PWM(azmsg)
+        y_inv_targetPWM = self.convert_to_PWM(ymsg, invert=True)
+        z_targetPWM = self.convert_to_PWM(zmsg, invert=True)
+        az_targetPWM = self.convert_to_PWM(azmsg, invert=True)
+        az_inv_targetPWM = self.convert_to_PWM(azmsg)
         
-        self.mc.run(x_channels, x_targetPWM, raw_pwm=True)
-        self.mc.run(y_forward_channels, y_targetPWM, raw_pwm=True)
-        self.mc.run(y_backward_channels, y_targetPWM * INVERTER, raw_pwm=True)
+        motors = {0 : self.calculate_motor_PWM(np.array([x_targetPWM, y_inv_targetPWM, az_inv_targetPWM])),
+                  1 : self.calculate_motor_PWM(np.array([x_targetPWM, y_targetPWM, az_inv_targetPWM])),
+                  2 : self.calculate_motor_PWM(np.array([x_targetPWM, y_inv_targetPWM, az_targetPWM])),
+                  7 : self.calculate_motor_PWM(np.array([x_targetPWM, y_targetPWM, az_targetPWM]))}
+        
+        for motor in motors:
+            self.mc.run([motor], motors[motor], raw_pwm=True)
+            # self.get_logger().info(f"Motor {motor} PWM: {motors[motor]}")
         self.mc.run(z_channels, z_targetPWM, raw_pwm=True)
-        self.mc.run(az_forward_channels, az_targetPWM, raw_pwm=True)
-        self.mc.run(az_backward_channels, az_targetPWM * INVERTER, raw_pwm=True)
         
         
-    def convert_to_PWM(self, target, multiplier=30):
-        return round(4 * (1490 + (target * multiplier)))
+    def convert_to_PWM(self, target, multiplier=30, invert=False):
+        if invert:
+            return round(1490 - (target * multiplier))
+        return round(1490 + (target * multiplier))
+    
+    def calculate_motor_PWM(self, pwm_set):
+        neutral = 1490
+        return max(min(round(neutral + np.sum(pwm_set - neutral)), 1650), 1330)
 
 
 def main(args=None):

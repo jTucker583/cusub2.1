@@ -9,6 +9,7 @@ from rclpy.node import Node
 from sensor_msgs.msg import Joy
 from geometry_msgs.msg import Twist
 import yaml
+from .submodules.motorController import motorController
 
 MAXVEL_X = 0
 MAXVEL_Y = 0
@@ -53,6 +54,11 @@ class JoyListener(Node):
         self.slinear_z = 0
         self.sangular_z = 0
         self.publish_cmd()
+        self.mc = motorController()
+        self.fmc_pressed = False
+        self.fmc_val = 1
+        self.light_pressed = False
+        self.light_on = False
         
 
     # def listener_callback(self, msg): # test fxn for joy_node
@@ -63,11 +69,56 @@ class JoyListener(Node):
     def listener_callback(self, msg):
         # Need to adjust values
         # implement logic to dermine max values to send
-        self.jlinear_x = msg.axes[1] * MAXVEL_X # forward/backward
-        self.jlinear_y = msg.axes[0] * MAXVEL_Y # side to side
-        self.jlinear_z = msg.axes[5] * MAXVEL_Z # depth control (need point implementation)
-        self.jangular_z = msg.axes[2] * MAXVEL_AZ # yah
+        x = msg.axes[1] # forward/backward
+        y = msg.axes[0] # side to side
+        z = msg.axes[5] * MAXVEL_Z # depth control (need point implementation)
+        az = msg.axes[2] # yah
+        
+        # proportion logic
+        sum_ax = abs(x) + abs(y) + abs(az)
+        if sum_ax < 1: sum_ax = 1
+        self.jlinear_x = x / sum_ax * MAXVEL_X * self.fmc_val # forward/backward
+        self.jlinear_y = y / sum_ax * MAXVEL_Y * self.fmc_val # side to side
+        self.jlinear_z = z * self.fmc_val # depth control (need point implementation)
+        self.jangular_z = az / sum_ax * MAXVEL_AZ # yaw
+        
+        self.get_logger().info(f"{self.convert_to_PWM(msg.axes[3])}")
+        self.mc.run([9],self.convert_to_PWM(msg.axes[3]), raw_pwm=True)
+        if (not int(msg.buttons[0])):
+            self.mc.run([8],1200, 1, raw_pwm=True)
+        else:
+            self.mc.run([8],1800, 1, raw_pwm=True)
+        if(int(msg.buttons[1]) and not self.fmc_pressed):
+            self.toggle_fmc()
+        if(int(msg.buttons[2]) and not self.light_pressed):
+            self.light_on = not self.light_on
+            if self.light_on:
+                self.get_logger().info(f"Light ON")
+            else:
+                self.get_logger().info(f"Light OFF")
+            
+        self.fmc_pressed = bool(msg.buttons[1])
+        self.light_pressed = bool(msg.buttons[2])
+        
         self.publish_cmd()
+        self.send_light_pwm()
+
+    def toggle_fmc(self):
+        if (self.fmc_val == 1):
+            self.get_logger().info(f"Fine Motor Control ON")
+            self.fmc_val = 0.66
+        else:
+            self.get_logger().info(f"Fine Motor Control OFF")
+            self.fmc_val = 1
+    
+    def send_light_pwm(self):
+        if (self.light_on):
+            self.mc.run([10],1900)
+        else:
+            self.mc.run([10],1100)
+    
+    def convert_to_PWM(self, axis):
+        return round(1500 + 500 * axis)
 
     def sys_cmd_vel_callback(self, msg):
         self.slinear_x = msg.linear.x

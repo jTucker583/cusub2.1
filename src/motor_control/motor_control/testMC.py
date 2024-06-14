@@ -19,6 +19,6 @@ servo.close()
 
 
 # Code for controlling motors
-channels = {8} # Channels to command
+channels = {9} # Channels to command
 mc = motorController()
-mc.run(channels,1800,1) # run motors at set speed for set time (seconds)
+mc.run(channels,1200,1) # run motors at set speed for set time (seconds)
