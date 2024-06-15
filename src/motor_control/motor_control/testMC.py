@@ -22,3 +22,6 @@ servo.close()
 channels = {9} # Channels to command
 mc = motorController()
 mc.run(channels,1200,1) # run motors at set speed for set time (seconds)
+
+motors = {0,1,2,3,4,5,6,7,8}
+mc.run(motors, 1490 * 4,1)

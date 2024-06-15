@@ -53,6 +53,8 @@ class JoyListener(Node):
             '/goal_pose',
             100 # made it 100 cuz we might want backlog
         )
+        self.goalpose = self.create_subscription(Pose, 'goal_pose', self.controller_callback, 10)
+        self.currentpose = self.create_subscription(Pose, 'pose', self.current_pose_callback, 10)
         self.joy_sub
         self.cmd_sub
         self.goalPosePub
@@ -70,9 +72,15 @@ class JoyListener(Node):
         self.fmc_val = 1
         self.light_pressed = False
         self.light_on = False
-        self.setPoint = None
+        self.setPoint = 0
+        self.goal = 0
+        self.currentPosition = 0
 
+    def controller_callback(self, msgPose):
+        self.goal = msgPose
 
+    def current_pose_callback(self, msg):
+        self.currentPosition = msg
     # def listener_callback(self, msg): # test fxn for joy_node
     #     mc = motorController()
     #     if(msg.axes[1] != 0): # trigger button
@@ -87,22 +95,22 @@ class JoyListener(Node):
         az = msg.axes[2] # yah
 
         goalPose = Pose()
-        goalPose.position.x = 0
-        goalPose.position.y = 0
+        goalPose.position.x = 0.0
+        goalPose.position.y = 0.0
 
-        tempZ = msg.axes[5]
+        tempZ = float(msg.axes[5])
         if tempZ != 0.0:
-            goalPose.position.z = self.get_setpoint() + tempZ/abs(tempZ)
-            self.lastPose = self.get_setpoint()  + tempZ/abs(tempZ)
+            goalPose.position.z = float(self.get_setpoint() + tempZ/abs(tempZ))
+            self.lastPose = float(self.get_setpoint()  + tempZ/abs(tempZ))
         else:
-            goalPose.position.z = self.setPoint
+            goalPose.position.z = float(self.setPoint)
 
-        goalPose.orientation.x = 0
-        goalPose.orientation.y = 0
-        goalPose.orientation.z = 0
-        goalPose.orientation.w = 0
+        goalPose.orientation.x = 0.0
+        goalPose.orientation.y = 0.0
+        goalPose.orientation.z = 0.0
+        goalPose.orientation.w = 0.0
 
-        # self.goalPosePub.publish(goalPose)
+        self.goalPosePub.publish(goalPose)
 
         
         # proportion logic
@@ -130,7 +138,17 @@ class JoyListener(Node):
             
         self.fmc_pressed = bool(msg.buttons[1])
         self.light_pressed = bool(msg.buttons[2])
-        
+        # self.get_logger().info(f"Right before publish cmd")
+        k = 0.1
+        real = self.currentPosition.position.z
+        goal3 = self.goal.position.z
+        if real+5 > goal3 > real - 5:
+            zCommand = k* (self.currentPosition.position.z - self.goal.position.z)
+            self.jlinear_z = zCommand
+            self.slinear_z = zCommand
+        else:
+            self.jlinear_z = 0.0
+            self.slinear_z = 0.0
         self.publish_cmd()
         self.send_light_pwm()
 
@@ -179,10 +197,10 @@ class JoyListener(Node):
         else:
             twist_msg.linear.y = float(self.slinear_y)
             
-        if self.jlinear_z is not None and self.jlinear_z != 0:
-            twist_msg.linear.z = float(self.jlinear_z)
-        else:
-            twist_msg.linear.z = float(self.slinear_z)
+        # if self.jlinear_z is not None and self.jlinear_z != 0:
+        #     twist_msg.linear.z = float(self.jlinear_z)
+        # else:
+        twist_msg.linear.z = float(self.slinear_z)
             
         if self.jangular_z is not None and self.jangular_z != 0:
             twist_msg.angular.z = float(self.jangular_z)

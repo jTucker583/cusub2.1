@@ -19,6 +19,7 @@ class pid_controller(Node):
         timer_period = 0.5  # seconds
         self.goalpose = self.create_subscription(Pose, 'goal_pose', self.controller_callback, 10)
         self.currentpose = self.create_subscription(Pose, 'pose', self.current_pose_callback, 10)
+        self.cmdPub = self.create_publisher(Twist, 'cmd_vel', 10)
         self.goal = Pose()
         self.currentPosition = Pose()
         self.Kp = 1
@@ -28,8 +29,21 @@ class pid_controller(Node):
     def controller_callback(self, msgPose):
         self.goal = msgPose
 
+    def utilityFunc(self):
+        k = 0.1
+        zCommand = k* (self.currentPosition.position.z - self.goal.position.z)
+        twistMsg = Twist()
+        twistMsg.linear.x = 0.0
+        twistMsg.linear.y = 0.0
+        twistMsg.linear.z = zCommand
+        twistMsg.angular.z = 0.0
+        self.cmdPub.publish(twistMsg)
+
+
     def current_pose_callback(self, msg):
         self.currentPosition = msg
+        # self.utilityFunc()
+        
  
     def pidLoop(self):
         prevDimDiff = [
