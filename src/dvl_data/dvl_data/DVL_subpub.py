@@ -11,63 +11,50 @@ from rclpy.node import Node
 # from wldvl import WlDVL
 from std_msgs.msg import String
 from geometry_msgs.msg import Pose
-from geometry_msgs.msg import Twist
 import serial
 import math
-import asyncio
-from .dvl_tcp_parser import _DVLMessage
+from .dvl_tcp_parser import datareader
 import time
 import json
-import threading
 
 class DVL(Node):
 
     def __init__(self):
         super().__init__('DVLPublisher')
-        self.rawvelpub = self.create_publisher(String, 'dvl_vel_data', 10)
-        self.rawrecpub = self.create_publisher(String, 'dvl_deadrec_data', 10)
-        self.twistpub = self.create_publisher(Twist, 'measured_vel', 10)
+        self.rawrecpub = self.create_publisher(String, 'dvl_raw_deadrec_data', 10)
         self.posepub = self.create_publisher(Pose, 'pose', 10)
-        self.timer_ = self.create_timer(0.2, self.publish_data)  # Call data_callback every 0.2 seconds (dead reckoning report update cycle is 5hz)
-        self.deadrecmsg = _DVLMessage()
-        self.velmsg = _DVLMessage()
+        self.goalposepub = self.create_publisher(Pose, 'goal_pose', 10)
+        self.dvl = datareader()
+        self.dvl.connect_dvl()
         self.posemsg = Pose()
-        self.twistmsg = Twist()
-        self.rthread = None
-        self.vthread = None
+        self.didinitialpose = False
+
+        self.timer_ = self.create_timer(0.2, self.publish_data)  # Call data_callback every 0.2 seconds (dead reckoning report update cycle is 5hz)
+    
     def publish_data(self):
-        self.get_logger().info(f"Publishing data")
-        self.getDeadreckoningData()
-        self.getVelocityData()
-        self.publish_raw_deadrec()
-        self.publish_raw_velocity()
-
-    def convert_to_twist(self, data):
-        if (data is None):
-            return
-        parsed_data = json.loads(data)
-        self.twistmsg._linear._x = parsed_data['vx']
-        self.twistmsg._linear._y = parsed_data['vy']
-        self.twistmsg._linear._z = parsed_data['vz']
-
-    def publish_raw_deadrec(self):
-        tmp = String()
-        if self.deadrecmsg.readMessage() is None:
-            tmp.data = "No data"
+        msgstr = String()
+        if (self.dvl.is_connected()):
+            msg = self.dvl.read_data("dead_reckoning")
+            if (msg is not None):
+                msgstr.data = str(msg)
+                self.posepub.publish(
+                    self.convert_to_pose(
+                        msg)
+                )
+                self.rawrecpub.publish(msgstr)
+                if (not self.didinitialpose):
+                    self.goalposepub.publish(
+                        self.convert_to_pose(
+                            msg)
+                    )
+                    self.didinitialpose = True
+            else:
+                self.get_logger().info("no data")
+                msgstr.data = "no data"
+                self.rawrecpub.publish(msgstr)
         else:
-            tmp.data = self.deadrecmsg.readMessage().to_string()
-        self.rawrecpub.publish(tmp)
-    def publish_raw_velocity(self):
-        tmp = String()
-        if self.velmsg.readMessage() is None:
-            tmp.data = "No data"
-        else:
-            tmp.data = self.velmsg.readMessage().to
-        self.rawvelpub.publish(tmp)
+            self.get_logger("DVL not connected").info()
 
-    def publish_twist(self):
-        if (self.twistmsg is not None):
-            self.twistpub.publish(self.twistmsg)
 
     def convert_to_pose(self, data):
         if (data is None):
@@ -81,41 +68,8 @@ class DVL(Node):
         self.posemsg.orientation.y = angdata[1]
         self.posemsg.orientation.z = angdata[2]
         self.posemsg.orientation.w = angdata[3]
+        return self.posemsg
 
-        self.get_logger().info(f"Pose data: {self.posemsg}")
-
-    def publish_pose(self):
-        if (self.posemsg is not None):
-            self.posepub.publish(self.posemsg)
-
-    def stopReadingData(self, dvlmsg):
-        dvlmsg.stopReading()
-
-    def getDeadreckoningData(self):
-        try:
-            if (not self.deadrecmsg.readingdata):
-                # self.deadrecmsg.startReading("dead_reckoning")
-                self.rthread = threading.Thread(target=self.deadrecmsg.startReading, args=("dead_reckoning"))
-            if (self.deadrecmsg.readingdata):
-                self.convert_to_pose(self.deadrecmsg.readMessage()) # updates class posemsg
-                self.publish_pose() # publishes class posemsg to ROS
-        except ConnectionRefusedError:
-            self.get_logger().error(f"Error connecting to DVL")
-        except KeyboardInterrupt:
-            self.get_logger().info(f"Stopping DVL reading")
-
-    def getVelocityData(self):
-        try:
-            if (not self.velmsg.readingdata):
-                self.vthread = threading.Thread(target=self.velmsg.startReading, args=("velocity"))
-                # self.velmsg.startReading("velocity")
-            if (self.velmsg.readingdata):
-                self.convert_to_twist(self.velmsg.readMessage()) # updates class posemsg
-                self.publish_twist() # publishes class posemsg to ROS
-        except ConnectionRefusedError:
-            self.get_logger().error(f"Error connecting to DVL")
-        except KeyboardInterrupt:
-            self.get_logger().info(f"Stopping DVL reading")
 
     def euler_to_quaternion(self, roll, pitch, yaw):
         cy = math.cos(yaw * 0.5)

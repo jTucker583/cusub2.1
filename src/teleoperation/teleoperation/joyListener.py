@@ -39,6 +39,11 @@ class JoyListener(Node):
             self.sys_cmd_vel_callback, #callback fxn
             10 # overflow queue
         )
+        self.goalPoseSub = self.create_subscription(
+            Pose,
+            '/goal_pose',
+            self.goal_pose_callback,
+            10)
         self.publisher = self.create_publisher(
             Twist,
             '/cmd_vel',
@@ -87,8 +92,8 @@ class JoyListener(Node):
 
         tempZ = msg.axes[5]
         if tempZ != 0.0:
-            goalPose.position.z = self.setPoint + tempZ/abs(tempZ)
-            self.lastPose = self.setPoint + tempZ/abs(tempZ)
+            goalPose.position.z = self.get_setpoint() + tempZ/abs(tempZ)
+            self.lastPose = self.get_setpoint()  + tempZ/abs(tempZ)
         else:
             goalPose.position.z = self.setPoint
 
@@ -97,7 +102,7 @@ class JoyListener(Node):
         goalPose.orientation.z = 0
         goalPose.orientation.w = 0
 
-        self.goalPosePub.publish(goalPose)
+        # self.goalPosePub.publish(goalPose)
 
         
         # proportion logic
@@ -152,6 +157,12 @@ class JoyListener(Node):
         self.slinear_z = msg.linear.z
         self.sangular_z = msg.angular.z
         self.publish_cmd()
+
+    def goal_pose_callback(self, msg):
+        self.setPoint = msg.position.z
+    
+    def get_setpoint(self):
+        return self.setPoint
 
     def publish_cmd(self):
         # Create Twist message
