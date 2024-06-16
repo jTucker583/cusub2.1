@@ -245,3 +245,17 @@ class datareader:
     
     def getMessage(self):
         return self.msg
+    
+    def reset_deadreckoning(self):
+        cmd = {"command": "reset dead_reckoning"}
+        self.dvl_socket.send(json.dumps(cmd).encode())
+        
+        response = self.dvl_socket.recv(4096).decode()
+        return json.dumps(response)
+    
+    def calibrate_gyro(self):
+        cmd = {"command": "calibrate gyro"}
+        self.dvl_socket.send(json.dumps(cmd).encode())
+        
+        response = self.dvl_socket.recv(4096).decode()
+        return json.dumps(response)

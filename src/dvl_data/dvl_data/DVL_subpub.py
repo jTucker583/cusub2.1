@@ -26,6 +26,9 @@ class DVL(Node):
         self.goalposepub = self.create_publisher(Pose, 'goal_pose', 10)
         self.dvl = datareader()
         self.dvl.connect_dvl()
+        if (self.dvl.is_connected()):
+            self.get_logger.info("Calibrating gyro...",self.dvl.calibrate_gyro())
+            self.get_logger.info("Resetting dead reckoning...",self.dvl.calibrate_gyro())
         self.posemsg = Pose()
         self.didinitialpose = False
 
@@ -53,7 +56,7 @@ class DVL(Node):
                 msgstr.data = "no data"
                 self.rawrecpub.publish(msgstr)
         else:
-            self.get_logger("DVL not connected").info()
+            self.get_logger().info("DVL not connected")
 
 
     def convert_to_pose(self, data):
