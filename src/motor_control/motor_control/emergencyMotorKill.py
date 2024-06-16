@@ -21,5 +21,8 @@ servo.close()
 # Code for controlling motors
 channels = {1,2,3,4,5,6,7} # Channels to command
 mc = motorController()
-mc.run(channels,1490,1) # run motors at set speed for set time (seconds)
+mc.run(channels,1490, raw_pwm=True) # run motors at set speed for set time (seconds)
+
+light = {9}
+mc.run(light, 1100/4, raw_pwm=True)
 print("Killed Motors")

@@ -1,6 +1,6 @@
 """
-    AUTHOR: XAVIER O'KEEFE
-    CONTACT: xaok7569@colorado.edu
+    AUTHOR: JAKE TUCKER
+    CONTACT: jatu9146@colorado.edu
     PURPOSE: Create subscriber for teleoperation
 """
 import rclpy
@@ -53,8 +53,9 @@ class JoyListener(Node):
             '/goal_pose',
             100 # made it 100 cuz we might want backlog
         )
-        self.goalpose = self.create_subscription(Pose, 'goal_pose', self.controller_callback, 10)
+        self.goalPose = Pose()
         self.currentpose = self.create_subscription(Pose, 'pose', self.current_pose_callback, 10)
+        self.timer = self.create_timer(0.2, self.publish_goal)
         self.joy_sub
         self.cmd_sub
         self.goalPosePub
@@ -75,10 +76,33 @@ class JoyListener(Node):
         self.setPoint = 0
         self.goal = Pose()
         self.currentPosition = Pose()
+        self.zaxis = 0
 
-    def controller_callback(self, msgPose):
-        self.goal = msgPose
 
+    def publish_goal(self):
+        goalPose = self.goalPose
+        if self.zaxis != 0.0:
+            goalPose.position.z = float(self.get_setpoint() + 3*self.zaxis/abs(self.zaxis))
+            self.lastPose = float(self.get_setpoint()  + 3*self.zaxis/abs(self.zaxis))
+        else:
+            goalPose.position.z = float(self.setPoint)
+        
+        self.goalPosePub.publish(goalPose)
+        k = 1
+        real = self.currentPosition.position.z
+        goal3 = self.goal.position.z
+        if real+10 < goal3  or goal3 < real - 10:
+            zCommand = -k* (self.currentPosition.position.z - self.goal.position.z)
+            zCommand = max(-5.0, min(5.0, zCommand))
+            self.jlinear_z = zCommand
+            self.slinear_z = zCommand
+        else:
+            self.jlinear_z = 0.0
+            self.slinear_z = 0.0
+        
+
+    def controller_callback(self, msg):
+        self.goalPose = msg
     def current_pose_callback(self, msg):
         self.currentPosition = msg
     # def listener_callback(self, msg): # test fxn for joy_node
@@ -86,31 +110,47 @@ class JoyListener(Node):
     #     if(msg.axes[1] != 0): # trigger button
     #         channels = [0,1,2,3,4,5,6,7] # dummy channel list
     #         mc.run(channels,msg.axes[1])
+
+    # def publish_goal(self, msg):
+    #     goalPose = self.goal()
+
     def listener_callback(self, msg):
         # Need to adjust values
         # implement logic to dermine max values to send
         x = msg.axes[1] # forward/backward
         y = msg.axes[0] # side to side
         z = msg.axes[5] * MAXVEL_Z # depth control (need point implementation)
+        self.zaxis = msg.axes[5]
         az = msg.axes[2] # yah
 
-        goalPose = Pose()
-        goalPose.position.x = 0.0
-        goalPose.position.y = 0.0
+        # goalPose = Pose()
+        # goalPose.position.x = 0.0
+        # goalPose.position.y = 0.0
 
-        tempZ = float(msg.axes[5])
-        if tempZ != 0.0:
-            goalPose.position.z = float(self.get_setpoint() + 10*tempZ/abs(tempZ))
-            self.lastPose = float(self.get_setpoint()  + 10*tempZ/abs(tempZ))
-        else:
-            goalPose.position.z = float(self.setPoint)
+        # tempZ = float(msg.axes[5])
+        # if tempZ != 0.0:
+        #     goalPose.position.z = float(self.get_setpoint() + 3*tempZ/abs(tempZ))
+        #     self.lastPose = float(self.get_setpoint()  + 3*tempZ/abs(tempZ))
+        # else:
+        #     goalPose.position.z = float(self.setPoint)
 
-        goalPose.orientation.x = 0.0
-        goalPose.orientation.y = 0.0
-        goalPose.orientation.z = 0.0
-        goalPose.orientation.w = 0.0
+        # goalPose.orientation.x = 0.0
+        # goalPose.orientation.y = 0.0
+        # goalPose.orientation.z = 0.0
+        # goalPose.orientation.w = 0.0
 
-        self.goalPosePub.publish(goalPose)
+        # self.goalPosePub.publish(goalPose)
+        # k = 1
+        # real = self.currentPosition.position.z
+        # goal3 = self.goal.position.z
+        # if real+10 < goal3  or goal3 < real - 10:
+        #     zCommand = -k* (self.currentPosition.position.z - self.goal.position.z)
+        #     zCommand = max(-5.0, min(5.0, zCommand))
+        #     self.jlinear_z = zCommand
+        #     self.slinear_z = zCommand
+        # else:
+        #     self.jlinear_z = 0.0
+            # self.slinear_z = 0.0
 
         
         # proportion logic
@@ -138,17 +178,6 @@ class JoyListener(Node):
         self.fmc_pressed = bool(msg.buttons[1])
         self.light_pressed = bool(msg.buttons[2])
         # self.get_logger().info(f"Right before publish cmd")
-        k = 0.1
-        real = self.currentPosition.position.z
-        goal3 = self.goal.position.z
-        if real+25 < goal3  or goal3 < real - 25:
-            zCommand = k* (self.currentPosition.position.z - self.goal.position.z)
-            zCommand = max(-5.0, min(5.0, zCommand))
-            self.jlinear_z = zCommand
-            self.slinear_z = zCommand
-        else:
-            self.jlinear_z = 0.0
-            self.slinear_z = 0.0
         self.publish_cmd()
         self.send_light_pwm()
 

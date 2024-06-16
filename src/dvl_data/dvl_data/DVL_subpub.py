@@ -26,9 +26,9 @@ class DVL(Node):
         self.goalposepub = self.create_publisher(Pose, 'goal_pose', 10)
         self.dvl = datareader()
         self.dvl.connect_dvl()
-        if (self.dvl.is_connected()):
-            self.get_logger.info("Calibrating gyro...",self.dvl.calibrate_gyro())
-            self.get_logger.info("Resetting dead reckoning...",self.dvl.calibrate_gyro())
+        #if (self.dvl.is_connected()):
+        #    self.get_logger.info("Calibrating gyro...",str(self.dvl.calibrate_gyro()))
+        #    self.get_logger.info("Resetting dead reckoning...",str(self.dvl.calibrate_gyro()))
         self.posemsg = Pose()
         self.didinitialpose = False
 
@@ -101,4 +101,3 @@ def main(args=None):
 
 if __name__ == '__main__':
     main()
-
