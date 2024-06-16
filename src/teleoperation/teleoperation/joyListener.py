@@ -73,8 +73,8 @@ class JoyListener(Node):
         self.light_pressed = False
         self.light_on = False
         self.setPoint = 0
-        self.goal = 0
-        self.currentPosition = 0
+        self.goal = Pose()
+        self.currentPosition = Pose()
 
     def controller_callback(self, msgPose):
         self.goal = msgPose
@@ -100,8 +100,8 @@ class JoyListener(Node):
 
         tempZ = float(msg.axes[5])
         if tempZ != 0.0:
-            goalPose.position.z = float(self.get_setpoint() + tempZ/abs(tempZ))
-            self.lastPose = float(self.get_setpoint()  + tempZ/abs(tempZ))
+            goalPose.position.z = float(self.get_setpoint() + 10*tempZ/abs(tempZ))
+            self.lastPose = float(self.get_setpoint()  + 10*tempZ/abs(tempZ))
         else:
             goalPose.position.z = float(self.setPoint)
 
@@ -121,7 +121,6 @@ class JoyListener(Node):
         self.jlinear_z = z * self.fmc_val # depth control (need point implementation)
         self.jangular_z = az / sum_ax * MAXVEL_AZ # yaw
         
-        self.get_logger().info(f"{self.convert_to_PWM(msg.axes[3])}")
         self.mc.run([9],self.convert_to_PWM(msg.axes[3]), raw_pwm=True)
         if (not int(msg.buttons[0])):
             self.mc.run([8],1200, 1, raw_pwm=True)
@@ -142,8 +141,9 @@ class JoyListener(Node):
         k = 0.1
         real = self.currentPosition.position.z
         goal3 = self.goal.position.z
-        if real+5 > goal3 > real - 5:
+        if real+25 < goal3  or goal3 < real - 25:
             zCommand = k* (self.currentPosition.position.z - self.goal.position.z)
+            zCommand = max(-5.0, min(5.0, zCommand))
             self.jlinear_z = zCommand
             self.slinear_z = zCommand
         else:
