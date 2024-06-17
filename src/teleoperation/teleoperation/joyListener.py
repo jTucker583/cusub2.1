@@ -1,6 +1,6 @@
 """
-    AUTHOR: XAVIER O'KEEFE
-    CONTACT: xaok7569@colorado.edu
+    AUTHOR: JAKE TUCKER
+    CONTACT: jatu9146@colorado.edu
     PURPOSE: Create subscriber for teleoperation
 """
 import rclpy
