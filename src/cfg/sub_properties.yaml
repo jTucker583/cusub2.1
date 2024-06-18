@@ -14,4 +14,8 @@ PWM_multiplier: 30 # calculated by taking the max_PWM = neutral_PWM + max_vel * 
 # current multiplier is 30, such that max_PWM = 1490 + 5 * 30 = 1640
 
 maestro_port: "/dev/ttyACM0"
+
+depth_goal_step: 3
+depth_k: 1
+depth_tolerance: 10
 # Path: src/cfg/depth_pid.yaml

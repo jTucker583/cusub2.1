@@ -15,13 +15,18 @@ MAXVEL_X = 0
 MAXVEL_Y = 0
 MAXVEL_Z = 0
 MAXVEL_AZ = 0
+DEPTH_K = 0
+DEPTH_GOAL_STEP = 0
+DEPTH_TOLERANCE = 0
 with open('src/cfg/sub_properties.yaml') as f:
     file = yaml.safe_load(f)
     MAXVEL_X = file['max_vel_x']
     MAXVEL_Y = file['max_vel_y']
     MAXVEL_Z = file['max_vel_z']
     MAXVEL_AZ = file['max_vel_az']
-
+    DEPTH_GOAL_STEP = file['depth_goal_step']
+    DEPTH_K = file['depth_k']
+    DEPTH_TOLERANCE = file['depth_tolerance']
 
 class JoyListener(Node):
 
@@ -82,17 +87,16 @@ class JoyListener(Node):
     def publish_goal(self):
         goalPose = self.goalPose
         if self.zaxis != 0.0:
-            goalPose.position.z = float(self.get_setpoint() + 3*self.zaxis/abs(self.zaxis))
-            self.lastPose = float(self.get_setpoint()  + 3*self.zaxis/abs(self.zaxis))
+            goalPose.position.z = float(self.get_setpoint() + DEPTH_GOAL_STEP*self.zaxis/abs(self.zaxis))
+            self.lastPose = float(self.get_setpoint()  + DEPTH_GOAL_STEP*self.zaxis/abs(self.zaxis))
         else:
             goalPose.position.z = float(self.setPoint)
         
         self.goalPosePub.publish(goalPose)
-        k = 1
         real = self.currentPosition.position.z
         goal3 = self.goal.position.z
-        if real+10 < goal3  or goal3 < real - 10:
-            zCommand = -k* (self.currentPosition.position.z - self.goal.position.z)
+        if real+DEPTH_TOLERANCE < goal3  or goal3 < real - DEPTH_TOLERANCE:
+            zCommand = -DEPTH_K* (self.currentPosition.position.z - self.goal.position.z)
             zCommand = max(-5.0, min(5.0, zCommand))
             self.jlinear_z = zCommand
             self.slinear_z = zCommand
