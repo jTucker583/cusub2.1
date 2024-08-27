@@ -8,6 +8,7 @@ from rclpy.node import Node
 # from .submodules import motorController # Class with motor control functions
 from sensor_msgs.msg import Joy
 from geometry_msgs.msg import Twist, Pose
+from std_msgs.msg import Boolean
 import yaml
 from .submodules.motorController import motorController
 
@@ -49,6 +50,11 @@ class JoyListener(Node):
             '/goal_pose',
             self.goal_pose_callback,
             10)
+        self.autonamousSub = self.create_subscription(
+            Pose,
+            '/autonamous_status',
+            self.autonamous_status_callback,
+            10)
         self.publisher = self.create_publisher(
             Twist,
             '/cmd_vel',
@@ -56,6 +62,11 @@ class JoyListener(Node):
         self.goalPosePub = self.create_publisher(
             Pose,
             '/goal_pose',
+            100 # made it 100 cuz we might want backlog
+        )
+        self.autonamous = self.create_publisher(
+            Boolean,
+            '/autonamous_status',
             100 # made it 100 cuz we might want backlog
         )
         self.goalPose = Pose()
@@ -82,6 +93,7 @@ class JoyListener(Node):
         self.goal = Pose()
         self.currentPosition = Pose()
         self.zaxis = 0
+        self.autonamous_status = False
 
 
     def publish_goal(self):
@@ -105,6 +117,8 @@ class JoyListener(Node):
             self.slinear_z = 0.0
         
 
+    def autonamous_status_callback(self, msg):
+        self.autonamous_status = msg.data
     def controller_callback(self, msg):
         self.goalPose = msg
     def current_pose_callback(self, msg):
@@ -222,11 +236,13 @@ class JoyListener(Node):
         # Publish jlinear data if available, otherwise use slinear data
         if self.jlinear_x is not None and self.jlinear_x != 0:
             twist_msg.linear.x = float(self.jlinear_x)
+            self.autonamous_status = False
         else:
             twist_msg.linear.x = float(self.slinear_x)
             
         if self.jlinear_y is not None and self.jlinear_y != 0:
             twist_msg.linear.y = float(self.jlinear_y)
+            self.autonamous_status = False
         else:
             twist_msg.linear.y = float(self.slinear_y)
             
@@ -237,10 +253,12 @@ class JoyListener(Node):
             
         if self.jangular_z is not None and self.jangular_z != 0:
             twist_msg.angular.z = float(self.jangular_z)
+            self.autonamous_status = False
         else:
             twist_msg.angular.z = float(self.sangular_z)
             
         self.publisher.publish(twist_msg)
+        self.autonamous.publish(Boolean(data=self.autonamous_status))
 
 def main(args=None):
     rclpy.init(args=args)
