@@ -8,7 +8,7 @@ from rclpy.node import Node
 # from .submodules import motorController # Class with motor control functions
 from sensor_msgs.msg import Joy
 from geometry_msgs.msg import Twist, Pose
-from std_msgs.msg import Boolean
+from std_msgs.msg import Bool
 import yaml
 from .submodules.motorController import motorController
 
@@ -26,13 +26,36 @@ with open('src/cfg/sub_properties.yaml') as f:
     MAXVEL_Z = file['max_vel_z']
     MAXVEL_AZ = file['max_vel_az']
     DEPTH_GOAL_STEP = file['depth_goal_step']
-    DEPTH_K = file['depth_k']
+    DEPTH_K = file['kp']
     DEPTH_TOLERANCE = file['depth_tolerance']
 
 class JoyListener(Node):
 
     def __init__(self):
         super().__init__('joyListener')
+        
+        self.goalPose = Pose()
+        self.currentpose = self.create_subscription(Pose, 'pose', self.current_pose_callback, 10)
+        self.timer = self.create_timer(0.2, self.publish_goal)
+        self.jlinear_x = 0
+        self.jlinear_y = 0
+        self.jlinear_z = 0
+        self.jangular_z = 0
+        self.slinear_x = 0
+        self.slinear_y = 0
+        self.slinear_z = 0
+        self.sangular_z = 0
+        self.mc = motorController()
+        self.fmc_pressed = False
+        self.fmc_val = 1
+        self.light_pressed = False
+        self.light_on = False
+        self.setPoint = 0
+        self.goal = Pose()
+        self.currentPosition = Pose()
+        self.zaxis = 0
+        self.autonamous_status = False
+        
         self.joy_sub = self.create_subscription(
             Joy, # msg type
             '/joy', # topic to listen to
@@ -51,7 +74,7 @@ class JoyListener(Node):
             self.goal_pose_callback,
             10)
         self.autonamousSub = self.create_subscription(
-            Pose,
+            Bool,
             '/autonamous_status',
             self.autonamous_status_callback,
             10)
@@ -65,35 +88,10 @@ class JoyListener(Node):
             100 # made it 100 cuz we might want backlog
         )
         self.autonamous = self.create_publisher(
-            Boolean,
+            Bool,
             '/autonamous_status',
             100 # made it 100 cuz we might want backlog
         )
-        self.goalPose = Pose()
-        self.currentpose = self.create_subscription(Pose, 'pose', self.current_pose_callback, 10)
-        self.timer = self.create_timer(0.2, self.publish_goal)
-        self.joy_sub
-        self.cmd_sub
-        self.goalPosePub
-        self.jlinear_x = 0
-        self.jlinear_y = 0
-        self.jlinear_z = 0
-        self.jangular_z = 0
-        self.slinear_x = 0
-        self.slinear_y = 0
-        self.slinear_z = 0
-        self.sangular_z = 0
-        self.publish_cmd()
-        self.mc = motorController()
-        self.fmc_pressed = False
-        self.fmc_val = 1
-        self.light_pressed = False
-        self.light_on = False
-        self.setPoint = 0
-        self.goal = Pose()
-        self.currentPosition = Pose()
-        self.zaxis = 0
-        self.autonamous_status = False
 
 
     def publish_goal(self):
@@ -258,7 +256,7 @@ class JoyListener(Node):
             twist_msg.angular.z = float(self.sangular_z)
             
         self.publisher.publish(twist_msg)
-        self.autonamous.publish(Boolean(data=self.autonamous_status))
+        self.autonamous.publish(Bool(data=self.autonamous_status))
 
 def main(args=None):
     rclpy.init(args=args)
