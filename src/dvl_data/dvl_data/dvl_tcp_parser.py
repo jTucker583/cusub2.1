@@ -5,13 +5,13 @@ import csv
 import datetime
 import json
 import socket
-
+import threading
 
 class _CSVWriter:
     def __init__(self, csv_file, message_type):
         self.csv_file = csv_file
         self.csv_writer = self._csv_writer(csv_file, message_type)
-
+        self.thread = None
     @classmethod
     def _csv_field_names(cls, message_type):
         if message_type == "velocity":
@@ -63,13 +63,13 @@ class _DVLMessage:
     def __str__(self):
         return json.dumps(self.message)
     
-    def _start_dvl_socket(dvl_ip):
+    def _start_dvl_socket(self):
         try:
             dvl_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            dvl_socket.connect((dvl_ip, 16171))
+            dvl_socket.connect((self.ip, 16171))
             return dvl_socket
         except ConnectionRefusedError:
-            return (ConnectionRefusedError, "Connection refused")
+            return ConnectionRefusedError
 
     def _type(self, message_type):
         if message_type == "velocity":
@@ -137,10 +137,16 @@ class _DVLMessage:
                 message = message_parts[-1]
 
     def startReading(self, message_type, time_format="%Y-%m-%d %H:%M:%S"):
+        if self.readingdata:
+            return
         self.readingdata = True
-        self.dvl = self._start_dvl_socket(self.ip)
-        if self.dvl[0] == ConnectionRefusedError:
+        self.dvl = self._start_dvl_socket()
+        if self.dvl == ConnectionRefusedError:
             return ConnectionRefusedError
+        # self.thread = threading.Thread(
+        #     target=self._process_messages,
+        #     args=(self.dvl, self._type(message_type), time_format))
+        # self.thread.start()
         self._process_messages(
             self.dvl,
             self._type(message_type),
@@ -151,3 +157,105 @@ class _DVLMessage:
 
     def readMessage(self):
         return self.message
+
+
+
+class datareader:
+    def __init__(self, ip="192.168.194.95"):
+        self.msg = None
+        self.dvl_socket = None
+        self.ip = ip
+    
+    def is_connected(self):
+        return (self.dvl_socket is not ConnectionRefusedError or self.dvl_socket is not None)
+
+    def connect_dvl(self):
+        try:
+            dvl_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            dvl_socket.connect((self.ip, 16171))
+            self.dvl_socket = dvl_socket
+            return dvl_socket
+        except ConnectionRefusedError:
+            return ConnectionRefusedError
+    
+    def _type(self, message_type):
+        if message_type == "velocity":
+            return "velocity"
+        return "position_local"
+
+    def read_data(self, message_type, time_format="%Y-%m-%d %H:%M:%S", csv_writer = None):
+        message_type = self._type(message_type)
+        buffer_size = 4096
+        message = ""
+        while True:
+            buffer = self.dvl_socket.recv(buffer_size).decode()
+            if not buffer:
+                continue
+            message_parts = buffer.split("\r\n")
+            if len(message_parts) == 1:
+                message += message_parts[0]
+                continue
+            for message_part in message_parts[:-1]:
+                message = message + message_part
+                self._handle(message_type, message, time_format, csv_writer)
+                message = ""
+                return self.getMessage()
+            if message_parts[-1]:
+                message = message_parts[-1]
+                return self.getMessage()
+
+
+    def _format_timestamp(self, timestamp, time_format):
+        return datetime.datetime.strftime(
+            datetime.datetime.fromtimestamp(timestamp),
+            time_format)
+
+    def _format_timestamps(self, message_type, message, time_format):
+        message["log_time"] = self._format_timestamp(
+            message["log_time"] / 1e6,
+            time_format)
+        if message_type == "velocity":
+            try:
+                message["time_of_validity"] = self._format_timestamp(
+                    message["time_of_validity"] / 1e6,
+                    time_format)
+                message["time_of_transmission"] = self._format_timestamp(
+                    message["time_of_transmission"] / 1e6,
+                    time_format)
+            except KeyError:
+                pass
+        else:
+            message["ts"] = self._format_timestamp(message["ts"], time_format)
+
+    def _handle(self, message_type, message, time_format, csv_writer):
+        """Handle a message from the DVL. Set self.message to the message."""
+        if not message:
+            return
+        try:
+            report = json.loads(message)
+        except json.decoder.JSONDecodeError:
+            print("Could not parse to JSON: " + message)
+            return
+        if report["type"] != message_type:
+            return
+        report["log_time"] = int(datetime.datetime.utcnow().timestamp() * 1e6)
+        if time_format:
+            self._format_timestamps(message_type, report, time_format)
+        self.msg = (json.dumps(report)) # the key function to return all data
+    
+    def getMessage(self):
+        return self.msg
+    
+    def reset_deadreckoning(self):
+        cmd = {"command": "reset dead_reckoning"}
+        self.dvl_socket.send(json.dumps(cmd).encode())
+        
+        response = self.dvl_socket.recv(4096).decode()
+        return json.dumps(response)
+    
+    def calibrate_gyro(self):
+        cmd = {"command": "calibrate gyro"}
+        self.dvl_socket.send(json.dumps(cmd).encode())
+        
+        response = self.dvl_socket.recv(4096).decode()
+        return json.dumps(response)

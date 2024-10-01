@@ -1,7 +1,7 @@
 """
-    AUTHOR: JAKE TUCKER
-    CONTACT: jatu9146@colorado.edu
-    PURPOSE: Send neutral PWM to all motors
+    AUTHOR: XAVIER OKEEFE
+    CONTACT: xaok7569@colorado.edu
+    PURPOSE: Test code to test motor controller
 """
 from submodules.motorController import motorController
 from submodules.Maestro import maestro
@@ -19,10 +19,10 @@ servo.close()
 
 
 # Code for controlling motors
-channels = {1,2,3,4,5,6,7} # Channels to command
+channels = {9} # Channels to command
 mc = motorController()
-mc.run(channels,1490, raw_pwm=True) # run motors at set speed for set time (seconds)
+mc.run(channels,1200,1) # run motors at set speed for set time (seconds)
 
-light = {9}
-mc.run(light, 1100/4, raw_pwm=True)
-print("Killed Motors")
+motors = {0,1,2,3,4,5,6,7,8}
+mc.run(motors, 1490 * 4,1)
+
