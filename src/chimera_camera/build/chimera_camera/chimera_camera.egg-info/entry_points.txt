@@ -1,0 +1,4 @@
+[console_scripts]
+camera_node = chimera_camera.CameraPublisher:main
+client = chimera_camera.CameraPublisherTest:main
+

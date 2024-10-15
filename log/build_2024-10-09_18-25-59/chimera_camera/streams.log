@@ -1,0 +1,25 @@
+[0.418s] Invoking command in '/home/williamhardee/Documents/cusub2.1/src/chimera_camera': PYTHONPATH=/home/williamhardee/Documents/cusub2.1/build/chimera_camera/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/williamhardee/Documents/cusub2.1/install/chimera_camera/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated setup.py egg_info --egg-base ../../build/chimera_camera build --build-base /home/williamhardee/Documents/cusub2.1/build/chimera_camera/build install --record /home/williamhardee/Documents/cusub2.1/build/chimera_camera/install.log --single-version-externally-managed install_data
+[0.556s] running egg_info
+[0.557s] writing ../../build/chimera_camera/chimera_camera.egg-info/PKG-INFO
+[0.557s] writing dependency_links to ../../build/chimera_camera/chimera_camera.egg-info/dependency_links.txt
+[0.557s] writing entry points to ../../build/chimera_camera/chimera_camera.egg-info/entry_points.txt
+[0.557s] writing requirements to ../../build/chimera_camera/chimera_camera.egg-info/requires.txt
+[0.557s] writing top-level names to ../../build/chimera_camera/chimera_camera.egg-info/top_level.txt
+[0.558s] reading manifest file '../../build/chimera_camera/chimera_camera.egg-info/SOURCES.txt'
+[0.558s] writing manifest file '../../build/chimera_camera/chimera_camera.egg-info/SOURCES.txt'
+[0.558s] running build
+[0.559s] running build_py
+[0.559s] copying chimera_camera/CameraPublisher.py -> /home/williamhardee/Documents/cusub2.1/build/chimera_camera/build/lib/chimera_camera
+[0.559s] running install
+[0.559s] running install_lib
+[0.559s] copying /home/williamhardee/Documents/cusub2.1/build/chimera_camera/build/lib/chimera_camera/CameraPublisher.py -> /home/williamhardee/Documents/cusub2.1/install/chimera_camera/lib/python3.10/site-packages/chimera_camera
+[0.559s] byte-compiling /home/williamhardee/Documents/cusub2.1/install/chimera_camera/lib/python3.10/site-packages/chimera_camera/CameraPublisher.py to CameraPublisher.cpython-310.pyc
+[0.560s] running install_data
+[0.560s] running install_egg_info
+[0.561s] removing '/home/williamhardee/Documents/cusub2.1/install/chimera_camera/lib/python3.10/site-packages/chimera_camera-0.0.0-py3.10.egg-info' (and everything under it)
+[0.561s] Copying ../../build/chimera_camera/chimera_camera.egg-info to /home/williamhardee/Documents/cusub2.1/install/chimera_camera/lib/python3.10/site-packages/chimera_camera-0.0.0-py3.10.egg-info
+[0.561s] running install_scripts
+[0.572s] Installing camera_node script to /home/williamhardee/Documents/cusub2.1/install/chimera_camera/lib/chimera_camera
+[0.572s] Installing client script to /home/williamhardee/Documents/cusub2.1/install/chimera_camera/lib/chimera_camera
+[0.572s] writing list of installed files to '/home/williamhardee/Documents/cusub2.1/build/chimera_camera/install.log'
+[0.584s] Invoked command in '/home/williamhardee/Documents/cusub2.1/src/chimera_camera' returned '0': PYTHONPATH=/home/williamhardee/Documents/cusub2.1/build/chimera_camera/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/williamhardee/Documents/cusub2.1/install/chimera_camera/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated setup.py egg_info --egg-base ../../build/chimera_camera build --build-base /home/williamhardee/Documents/cusub2.1/build/chimera_camera/build install --record /home/williamhardee/Documents/cusub2.1/build/chimera_camera/install.log --single-version-externally-managed install_data
