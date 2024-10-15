@@ -19,12 +19,15 @@ class Camera(Node):
         # Sets up the service with the custom type in ../srv/DetectObjects.srv
         self.srv = self.create_service(DetectObjects, 'detect_objects', self.detect_objects)
 
+        self.model = YOLO("../models/yolo11m.pt")
+
         # Initiate the CvBridge to convert OpenCV images into ROS images
         self.bridge = CvBridge()
 
         # Opens up the camera port to be read from
         self.cam_feed = cv2.VideoCapture(CAMERA_PORT)
 
+        
         # If camera does not open, shut down the node because it is useless
         if not self.cam_feed.isOpened():
             self.get_logger().error("Failed to open camera")
@@ -34,6 +37,8 @@ class Camera(Node):
         # OpenCV keeps a buffer of frames, we only need the most recent frame
         self.cam_feed.set(cv2.CAP_PROP_BUFFERSIZE, 1)
 
+        self.get_logger().info("Camera Node Successfully Initialized")
+
         
 
     def cleanup(self):
@@ -41,30 +46,65 @@ class Camera(Node):
         if self.cam_feed.isOpened():
             self.cam_feed.release()
         cv2.destroyAllWindows()
-        rclpy.shutdown()
-        sys.exit(0)
 
     def detect_objects(self, request, response):
-        unused = self.cam_feed.read()
-        ret, frame = self.cam_feed.read()
+
+        unused = self.cam_feed.read()  # Clear buffer
+        ret, frame = self.cam_feed.read()  # Get the latest frame
 
         if not ret:
             self.get_logger().error("Could not read camera")
             return response
 
-        # Display the resulting frame
-        cv2.imshow('Webcam Feed', frame)
+        # Perform object detection on the frame using YOLO11m
+        results = self.model(frame)
 
-        # Wait for a short time to keep the window responsive
-        cv2.waitKey(0)
+        object_names = []
+        object_positions_x = []
+        object_positions_y = []
+        confidences = []
+    # Draw bounding boxes and labels
+        for detection in results[0].boxes:
+            
+            # Get the coords for the bounding box, confidence scores, and labels. The .cpu().numpy() moves the tensors to cpu memory where they can
+            #be converted to numpy arrays. Tensors can be converted to numpy in the GPU.
+    
+            xyxy = detection.xyxy.cpu().numpy()[0]
+            confidence = detection.conf.cpu().numpy()[0]
+            label = self.model.names[int(detection.cls.cpu().numpy()[0])]  
 
-        cv2.destroyAllWindows()
+      
+            start_point = (int(xyxy[0]), int(xyxy[1]))  # Top-left corner
+            end_point = (int(xyxy[2]), int(xyxy[3]))    # Bottom-right corner
+            cv2.rectangle(frame, start_point, end_point, (0, 255, 0), 2)  # Green box with thickness 2
 
-        # Test output
-        response.object_names = ["cat", "dog", "mouse"]
-        response.object_positions_x = [100.0, 200.0, 132.0]
-        response.object_positions_y = [150.0, 250.0, 120.0]
-        response.confidence = [90.0, 95.0, 17.6]
+            # Put the label and confidence on the frame
+            text = f"{label} {confidence:.2f}"
+            cv2.putText(frame, text, (int(xyxy[0]), int(xyxy[1]) - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
+
+            # Calculate center of bounding box
+            x_center = (xyxy[0] + xyxy[2]) / 2
+            y_center = (xyxy[1] + xyxy[3]) / 2
+
+            # Store detection data for response
+            object_names.append(label)
+            object_positions_x.append(float(x_center))
+            object_positions_y.append(float(y_center))
+            confidences.append(float(confidence))
+
+        ''' Uncomment if you want to see bounding boxes 
+        # Display the resulting frame with bounding boxes
+        cv2.imshow('Webcam Feed with Detections', frame)
+
+        # Wait for a key press to keep the window responsive
+        cv2.waitKey(0)  
+        '''
+
+        # Populate the response
+        response.object_names = object_names
+        response.object_positions_x = object_positions_x
+        response.object_positions_y = object_positions_y
+        response.confidence = confidences
 
         return response
 
