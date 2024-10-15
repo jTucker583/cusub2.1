@@ -8,6 +8,13 @@ setup(
     name=package_name,
     version='0.0.0',
     packages=[package_name],
+    install_requires=[
+        "opencv-python",
+        "torch",
+        "numpy",
+        "ultralytics",
+        "setuptools"
+    ],
     data_files=[
         ('share/ament_index/resource_index/packages',
             ['resource/' + package_name]),
@@ -15,7 +22,6 @@ setup(
         (os.path.join('share', package_name, 'launch'), glob(os.path.join('launch', '*launch.[pxy][yma]*'))),
         (os.path.join('share', package_name, 'models'), glob(os.path.join('models', '*.pt'))),
     ],
-    install_requires=['setuptools'],
     zip_safe=True,
     maintainer='jaketucker',
     maintainer_email='tuckerjake11@gmail.com',

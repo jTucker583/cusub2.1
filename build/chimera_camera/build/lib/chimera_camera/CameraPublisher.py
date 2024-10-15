@@ -2,11 +2,10 @@ import rclpy
 from custom_interfaces.srv import DetectObjects
 from ultralytics import YOLO
 from rclpy.node import Node
-from cv_bridge import CvBridge
+#from cv_bridge import CvBridge
 import cv2
 import numpy as np
-import signal
-import sys
+
 
 CAMERA_PORT = 0
 
@@ -22,7 +21,7 @@ class Camera(Node):
         self.model = YOLO("../models/yolo11m.pt")
 
         # Initiate the CvBridge to convert OpenCV images into ROS images
-        self.bridge = CvBridge()
+        #self.bridge = CvBridge()
 
         # Opens up the camera port to be read from
         self.cam_feed = cv2.VideoCapture(CAMERA_PORT)
