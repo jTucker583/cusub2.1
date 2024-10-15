@@ -1,0 +1,60 @@
+# General Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.egg-info/
+*.egg
+dist/
+build/
+eggs/
+parts/
+var/
+sdist/
+pip-wheel-metadata/
+*.so
+
+# ROS2 specific
+install/
+log/
+build/
+*.log
+*.yaml
+*.txt
+
+# ROS2 Workspace
+src/
+# The ROS2 workspace build directory
+*.rosinstall
+*.deb
+
+# IDEs
+.vscode/
+.idea/
+*.iml
+*.swp
+*.swo
+*.DS_Store
+*.bak
+*.tmp
+*.orig
+
+# Jupyter Notebooks
+.ipynb_checkpoints/
+
+# CMake
+CMakeLists.txt.user
+
+# Testing
+pytest_cache/
+.nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
+.tox/
+*.egg-info/
+
+# Pytest and coverage
+.coverage
+.coverage.*
+*.cover
