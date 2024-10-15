@@ -58,3 +58,5 @@ coverage.xml
 .coverage
 .coverage.*
 *.cover
+.vscode
+__pycache__
