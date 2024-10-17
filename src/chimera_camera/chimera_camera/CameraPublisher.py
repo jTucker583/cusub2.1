@@ -62,6 +62,8 @@ class Camera(Node):
         object_positions_x = []
         object_positions_y = []
         confidences = []
+        top_left = []
+        bottom_right = []
     # Draw bounding boxes and labels
         for detection in results[0].boxes:
             
@@ -86,10 +88,15 @@ class Camera(Node):
             y_center = (xyxy[1] + xyxy[3]) / 2
 
             # Store detection data for response
-            object_names.append(label)
-            object_positions_x.append(float(x_center))
-            object_positions_y.append(float(y_center))
-            confidences.append(float(confidence))
+            if float(confidence) > 0.75:
+                top_left.extend([float(xyxy[0]), float(xyxy[1])])
+                bottom_right.extend([float(xyxy[2]), float(xyxy[3])])
+                object_names.append(label)
+                object_positions_x.append(float(x_center))
+                object_positions_y.append(float(y_center))
+                confidences.append(float(confidence))
+
+
 
         ''' Uncomment if you want to see bounding boxes 
         # Display the resulting frame with bounding boxes
@@ -98,12 +105,13 @@ class Camera(Node):
         # Wait for a key press to keep the window responsive
         cv2.waitKey(0)  
         '''
-
         # Populate the response
         response.object_names = object_names
         response.object_positions_x = object_positions_x
         response.object_positions_y = object_positions_y
         response.confidence = confidences
+        response.top_left = top_left
+        response.bottom_right = bottom_right
 
         return response
 
