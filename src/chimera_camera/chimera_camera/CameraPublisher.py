@@ -26,7 +26,6 @@ class Camera(Node):
         # Opens up the camera port to be read from
         self.cam_feed = cv2.VideoCapture(CAMERA_PORT)
 
-        
         # If camera does not open, shut down the node because it is useless
         if not self.cam_feed.isOpened():
             self.get_logger().error("Failed to open camera")
