@@ -1,6 +1,6 @@
 import rclpy
 from rclpy.node import Node
-from .submodules.motorController import motorController # Class with motor control functions
+from .motorController import motorController # Class with motor control functions
 from geometry_msgs.msg import Twist
 from geometry_msgs.msg import Pose
 from std_msgs.msg import Bool
