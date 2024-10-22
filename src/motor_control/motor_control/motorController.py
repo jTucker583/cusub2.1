@@ -6,27 +6,27 @@
 import serial
 import time
 import sys
-from .Maestro import maestro
+from .submodules.Maestro import maestro
 import yaml
-import rclpy
 import logging
 
 PWM_MULTIPLIER = 0
-NEUTRAL_PWM = 1500
+NEUTRAL_PWM = 1490
 with open('src/cfg/sub_properties.yaml') as f:
     file = yaml.safe_load(f)
     PWM_MULTIPLIER = file['PWM_multiplier']
     NEUTRAL_PWM = file['neutral_PWM']
-
+    MAX_PWM = file['max_PWM']
+    MIN_PWM = file['min_PWM']
+    PORT = file['maestro_port']
 
 class motorController:
     
     def __init__(self):
         # initialize serial port , set baud rate, set timeout
-        self.port = '/dev/ttyACM0'
         self.serial = None
         try:
-            self.serial = serial.Serial(self.port, 9600, timeout=1) 
+            self.serial = serial.Serial(PORT, 9600, timeout=1) 
         except:
             print("Error opening serial port {port}")
         
@@ -49,11 +49,12 @@ class motorController:
         if not raw_pwm:
             targetPWM = round(4 * (NEUTRAL_PWM + INVERTER * (target * multiplier)))
         else:
-            targetPWM = target * 4
-        targetPWM = round(targetPWM)
+            targetPWM = round(target * 4)
         logging.info(f'PWM: {targetPWM / 4}')
-        if (targetPWM > 1800 * 4): targetPWM = 18000* 4
-        elif (targetPWM < 1100 * 4): targetPWM = 1100 * 4
+        
+        if (targetPWM > MAX_PWM * 4): targetPWM = MAX_PWM * 4
+        elif (targetPWM < MIN_PWM * 4): targetPWM = MIN_PWM * 4
+        
         targetBytes = [(targetPWM & 0x7F), ((targetPWM >> 7) & 0x7F)]
         for channel in channels: # loop through channels
             finalCommand = [0x84, channel] + targetBytes # Send 4 byte command to maestro
@@ -62,11 +63,6 @@ class motorController:
         #     time.sleep(duration)
         #     self.killAll(channels)
         return targetPWM
-    
-    # def run(self, channels, raw_pwm):
-    #     """
-    #     TODO: Send raw PWM value to servos
-    #     """
 
     def killAll(self, channels):
         """Send the neutral PWM command to the list of servos

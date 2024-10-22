@@ -10,7 +10,7 @@ from sensor_msgs.msg import Joy
 from geometry_msgs.msg import Twist, Pose
 from std_msgs.msg import Bool
 import yaml
-from .submodules.motorController import motorController
+from .motorController import motorController
 
 MAXVEL_X = 0
 MAXVEL_Y = 0
